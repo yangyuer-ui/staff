@@ -3,7 +3,7 @@ import { BackendType } from '../src/OpenSheetMusicDisplay/OSMDOptions';
 import * as jsPDF from '../node_modules/jspdf/dist/jspdf.es.min';
 import * as svg2pdf from '../node_modules/svg2pdf.js/dist/svg2pdf.umd.min';
 import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculator';
-
+import { Note } from "../src/MusicalScore/VoiceData";
 /*jslint browser:true */
 (function () {
     "use strict";
@@ -129,12 +129,43 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
     var showDebugControls = false;
 
     document.title = "OpenSheetMusicDisplay Demo";
+    var ws = new WebSocket("ws://localhost:5001/playWeb");
+    //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
+    ws.onopen = function () {
+        //当WebSocket创建成功时，触发onopen事件
+        console.log("websocket连接成功");
+        //ws.send("hello"); //将消息发送到服务端
+    }
 
+    ws.onclose = function (e) {
+        //当客户端收到服务端发送的关闭连接请求时，触发onclose事件
+        console.log("websocket已断开");
+    }
+    ws.onerror = function (e) {
+        //如果出现连接、处理、接收、发送数据失败的时候触发onerror事件
+        console.log("websocket发生错误" + e);
+    }
+    ws.onmessage = function (e) {
+        if (e.data) {
+            openSheetMusicDisplay.cursor.next();
+            // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
+            ws.send(getNowNote());
+        }
+    }
+    // 获取当前要弹奏的音符
+    function getNowNote() {
+        let arrNote = [];
+        // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
+        openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries.forEach((item1) => {
+            item1.notes.forEach((item2) => {
+                arrNote.push(item2.halfTone)
+            })
+        })
+        return arrNote;
+    }
     // Initialization code
     function init() {
-
         var name, option;
-
         // Handle window parameter
         var paramEmbedded = findGetParameter('embedded');
         var paramShowControls = findGetParameter('showControls');
@@ -389,7 +420,7 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
         // Pre-select default music piece
 
         custom.appendChild(document.createTextNode("Custom"));
-
+     
         // Create zoom controls
         for (const zoomIn of zoomIns) {
             if (zoomIn) {
@@ -500,8 +531,18 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
             openSheetMusicDisplay.cursor.previous();
         });
         nextCursorBtn.addEventListener("click", function () {
-            debugger
+            // debugger
+            let re = new Note();
             openSheetMusicDisplay.cursor.next();
+            console.log(getNowNote());
+            // osmd.graphic.measureList[0][0].staffEntries[0].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#FF0000" // for the piano note, try measureList[0][1].
+            // osmd.graphic.measureList[0][0].staffEntries[1].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#0000FF" // blue note on "Auf"
+            // osmd.render()
+
+            // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
+            // const cursorVoiceEntry = openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries[0];
+            // const lowestVoiceEntryNote = cursorVoiceEntry.Notes[0];
+
         });
         resetCursorBtn.addEventListener("click", function () {
             openSheetMusicDisplay.cursor.reset();
@@ -570,6 +611,8 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
             }
             selectSampleOnChange();
         }
+
+
     }
 
     // 获取真实ip地址
@@ -600,11 +643,11 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
                     let res = JSON.parse(xhr.response);
                     if (res.seatchResList.length > 0) {
                         // Create select
-                        let  option;
-                        for (let i=0;i<res.seatchResList.length;i++) {
-                            if (res.seatchResList.length>0) {
+                        let option;
+                        for (let i = 0; i < res.seatchResList.length; i++) {
+                            if (res.seatchResList.length > 0) {
                                 option = document.createElement("option");
-                                option.value =`${res.seatchResList[i].savePath}.musicxml`;
+                                option.value = `${res.seatchResList[i].savePath}.musicxml`;
                                 option.textContent = res.seatchResList[i].midiName;
                             }
                             if (selectSample) {
@@ -815,6 +858,8 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
         }
         // Enable controls again
         enable();
+        // 发送初始第一个值
+        console.log(getNowNote());
     }
 
     function logCanvasSize() {
@@ -954,6 +999,7 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
         init();
         getIpPath();
         getSongs();
+
     });
     window.addEventListener("dragenter", function (event) {
         event.preventDefault();
@@ -988,6 +1034,7 @@ import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculato
         else {
             alert("No vaild .xml/.mxl/.musicxml file!");
         }
+    
     });
 
 
