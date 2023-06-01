@@ -75,15 +75,11 @@ import { Note } from "../src/MusicalScore/VoiceData";
         zoom = 1.0,
         // HTML Elements in the page
         divControls,
-        zoomControls,
         header,
         err,
         error_tr,
         canvas,
         selectSample,
-        selectBounding,
-        skylineDebug,
-        bottomlineDebug,
         zoomIns,
         zoomOuts,
         zoomDivs,
@@ -96,12 +92,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         hideCursorBtn,
         backendSelect,
         backendSelectDiv,
-        debugReRenderBtn,
-        debugClearBtn,
-        selectPageSizes,
-        printPdfBtns,
-        transpose,
-        transposeBtn;
+        selectPageSizes;
 
     // manage option setting and resetting for specific samples, e.g. in the autobeam sample autobeam is set to true, otherwise reset to previous state
     // TODO design a more elegant option state saving & restoring system, though that requires saving the options state in OSMD
@@ -151,6 +142,74 @@ import { Note } from "../src/MusicalScore/VoiceData";
             // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
             ws.send(getNowNote());
         }
+    }
+
+    // src 是播多媒体文件的；srcObject 是实时流
+    let mediaRecorder;  // 视频录制数据
+    let mediaStreamTrack; // 视频实时流
+    // 开始录屏
+    async function startRecorder() {
+        mediaStreamTrack = await navigator.mediaDevices.getUserMedia({
+            video: true
+        })
+        video.srcObject = mediaStreamTrack;
+        video.onloadedmetadata = () => video.play();
+
+        // 需要更好的浏览器支持
+        const mime = MediaRecorder.isTypeSupported("video/webm; codecs=vp9")
+            ? "video/webm; codecs=vp9"
+            : "video/webm";
+        mediaRecorder = new MediaRecorder(mediaStreamTrack, {
+            mimeType: mime
+        })
+
+        let chunks = []
+        mediaRecorder.addEventListener('dataavailable', function (e) {
+            chunks.push(e.data)
+        })
+        mediaRecorder.addEventListener('stop', function () {
+            let blob = new Blob(chunks, {
+                type: chunks[0].type
+            })
+            let url = URL.createObjectURL(blob);
+
+            // 将video切换成录制的视频
+            video.srcObject = null;
+            video.src = url;
+            video.onloadedmetadata = () => video.play();
+
+            // 下载至本地
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'video.mp4';
+            a.click();
+        })
+        // 必须手动启动
+        mediaRecorder.start();
+    }
+
+    // 停止录屏
+    function stopRecorder() {
+        mediaStreamTrack.getVideoTracks().forEach((track) => {
+            track.stop();
+        });
+        mediaRecorder.stop();
+    }
+
+    // 截取图片
+    function clipPhoto() {
+        let canvas = document.createElement('canvas');
+        let { width, height } = video;
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, width, height);
+
+        // 下载图片、
+        let a = document.createElement('a');
+        a.download = "image";
+        a.href = canvas.toDataURL('image/png');
+        a.click();
     }
     // 获取当前要弹奏的音符
     function getNowNote() {
@@ -228,21 +287,8 @@ import { Note } from "../src/MusicalScore/VoiceData";
         var horizontalScrolling = paramHorizontalScrolling === '1';
         var singleHorizontalStaffline = paramSingleHorizontalStaffline === '1';
 
-        // set the backendSelect debug controls dropdown menu selected item
-        //console.log("true: " + backendSelect && backendType.toLowerCase && backendType.toLowerCase() === "canvas");
-        // TODO somehow backendSelect becomes undefined here:
-        /*if (backendSelect && backendType.toLowerCase && backendType.toLowerCase() === "canvas") {
-            console.log("here1");
-            for (var i=0; i<backendSelect.options.length; i++) {
-                if (backendSelect.options[i].value.toLowerCase() === "canvas") {
-                    backendSelect.selectedIndex = i;
-                }
-            }
-            backendSelect.value = "Canvas";
-        }*/
 
         divControls = document.getElementById('divControls');
-        zoomControls = document.getElementById('zoomControls');
         header = document.getElementById('header');
         err = document.getElementById("error-td");
         error_tr = document.getElementById("error-tr");
@@ -251,9 +297,6 @@ import { Note } from "../src/MusicalScore/VoiceData";
         zoomDivs.push(document.getElementById("zoom-str-optional"));
         custom = document.createElement("option");
         selectSample = document.getElementById("selectSample");
-        selectBounding = document.getElementById("selectBounding");
-        skylineDebug = document.getElementById("skylineDebug");
-        bottomlineDebug = document.getElementById("bottomlineDebug");
         zoomIns = [];
         zoomIns.push(document.getElementById("zoom-in-btn"));
         zoomIns.push(document.getElementById("zoom-in-btn-optional"));
@@ -264,33 +307,33 @@ import { Note } from "../src/MusicalScore/VoiceData";
         if (horizontalScrolling) {
             canvas.style.overflowX = 'auto'; // enable horizontal scrolling
         }
-        //canvas.id = 'osmdCanvasDiv';
-        //canvas.style.overflowX = 'auto'; // enable horizontal scrolling
         previousCursorBtn = document.getElementById("previous-cursor-btn");
         nextCursorBtn = document.getElementById("next-cursor-btn");
         resetCursorBtn = document.getElementById("reset-cursor-btn");
         followCursorCheckbox = document.getElementById("follow-cursor-checkbox");
         showCursorBtn = document.getElementById("show-cursor-btn");
         hideCursorBtn = document.getElementById("hide-cursor-btn");
-        backendSelect = document.getElementById("backend-select");
         backendSelectDiv = document.getElementById("backend-select-div");
-        debugReRenderBtn = document.getElementById("debug-re-render-btn");
-        debugClearBtn = document.getElementById("debug-clear-btn");
         selectPageSizes = [];
-        selectPageSizes.push(document.getElementById("selectPageSize"));
-        selectPageSizes.push(document.getElementById("selectPageSize-optional"));
-        printPdfBtns = [];
-        printPdfBtns.push(document.getElementById("print-pdf-btn"));
-        printPdfBtns.push(document.getElementById("print-pdf-btn-optional"));
-        transpose = document.getElementById('transpose');
-        transposeBtn = document.getElementById('transpose-btn');
+
+        document.getElementById('startRecorder').addEventListener("click", function () {
+            startRecorder();
+        });
+
+        document.getElementById('stopRecorder').addEventListener("click", function () {
+            stopRecorder();
+        });
+
+        document.getElementById('clipPhoto').addEventListener("click", function () {
+            clipPhoto();
+        });
 
         //var defaultDisplayVisibleValue = "block"; // TODO in some browsers flow could be the better/default value
         var defaultVisibilityValue = "visible";
         showDebugControls = paramDebugControls !== '0';
         if (showDebugControls) {
             var elementsToEnable = [
-                selectSample, selectBounding, selectPageSizes[0], backendSelect, backendSelectDiv, divControls
+                selectSample, selectPageSizes[0], backendSelect, backendSelectDiv, divControls
             ];
             for (var i = 0; i < elementsToEnable.length; i++) {
                 if (elementsToEnable[i]) { // make sure this element is not null/exists in the index.html, e.g. github.io demo has different index.html
@@ -348,7 +391,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
                 const zoomControlsString = document.getElementById('zoom-str-optional'); // actually === zoomDivs[1] above
 
                 if (zoomControlsString) {
-                    zoomControlsString.innerHTML = Math.floor(zoom * 100.0) + "%";
+                    zoomControlsString.innerHTML = Math.floor(zoom * 70.0) + "%";
                     zoomControlsString.style.display = 'inline';
                     // zoomControlsString.style.padding = '10px';
                 }
@@ -395,9 +438,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         if (selectSample) {
             selectSample.onchange = selectSampleOnChange;
         }
-        if (selectBounding) {
-            selectBounding.onchange = selectBoundingOnChange;
-        }
+
 
         for (const selectPageSize of selectPageSizes) {
             if (selectPageSize) {
@@ -409,18 +450,10 @@ import { Note } from "../src/MusicalScore/VoiceData";
             }
         }
 
-        for (const printPdfBtn of printPdfBtns) {
-            if (printPdfBtn) {
-                printPdfBtn.onclick = function () {
-                    createPdf();
-                }
-            }
-        }
-
         // Pre-select default music piece
 
         custom.appendChild(document.createTextNode("Custom"));
-     
+
         // Create zoom controls
         for (const zoomIn of zoomIns) {
             if (zoomIn) {
@@ -436,32 +469,6 @@ import { Note } from "../src/MusicalScore/VoiceData";
                     zoom /= 1.2;
                     scale();
                 };
-            }
-        }
-
-        if (skylineDebug) {
-            skylineDebug.onclick = function () {
-                openSheetMusicDisplay.DrawSkyLine = !openSheetMusicDisplay.DrawSkyLine;
-                openSheetMusicDisplay.render();
-            }
-        }
-
-        if (bottomlineDebug) {
-            bottomlineDebug.onclick = function () {
-                openSheetMusicDisplay.DrawBottomLine = !openSheetMusicDisplay.DrawBottomLine;
-                openSheetMusicDisplay.render();
-            }
-        }
-
-        if (debugReRenderBtn) {
-            debugReRenderBtn.onclick = function () {
-                rerender();
-            }
-        }
-
-        if (debugClearBtn) {
-            debugClearBtn.onclick = function () {
-                openSheetMusicDisplay.clear();
             }
         }
 
@@ -514,7 +521,9 @@ import { Note } from "../src/MusicalScore/VoiceData";
         //openSheetMusicDisplay.DrawBottomLine = true;
         //openSheetMusicDisplay.setDrawBoundingBox("GraphicalLabel", false);
         openSheetMusicDisplay.setLogLevel('info'); // set this to 'debug' if you want to see more detailed control flow information in console
-        document.body.appendChild(canvas);
+       
+        document.getElementById('right').appendChild(canvas)
+        // document.body.appendChild(canvas);
 
         window.addEventListener("keydown", function (e) {
             var event = window.event ? window.event : e;
@@ -567,31 +576,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
             }
         });
 
-        backendSelect.addEventListener("change", function (e) {
-            var value = e.target.value;
-            var createNewOsmd = true;
 
-            if (createNewOsmd) {
-                // clears the canvas element
-                canvas.innerHTML = "";
-                //openSheetMusicDisplay = new OpenSheetMusicDisplay(canvas, { backend: value }); // resets EngravingRules
-                openSheetMusicDisplay.setOptions({ backend: value });
-                openSheetMusicDisplay.setLogLevel('info'); // set this to 'debug' if you want to get more detailed control flow information
-            } else {
-                // alternative, doesn't work yet, see setOptions():
-                openSheetMusicDisplay.setOptions({ backend: value });
-            }
-            console.log("[OSMD] selectSampleOnChange addEventListener change");
-            // selectSampleOnChange();
-        });
-        if (transposeBtn && transpose) {
-            transposeBtn.onclick = function () {
-                var transposeValue = parseInt(transpose.value);
-                openSheetMusicDisplay.Sheet.Transpose = transposeValue;
-                openSheetMusicDisplay.updateGraphic();
-                rerender();
-            }
-        }
 
         // TODO after selectSampleOnChange, the resize handler triggers immediately,
         //   so we render twice at the start of the demo.
@@ -852,6 +837,12 @@ import { Note } from "../src/MusicalScore/VoiceData";
     }
 
     function onLoadingEnd(isCustom) {
+        // 默认显示光标
+        if (openSheetMusicDisplay.cursor) {
+            openSheetMusicDisplay.cursor.show();
+        } else {
+            console.info("Can't show cursor, as it was disabled (e.g. by drawingParameters).");
+        }
         // Remove option from select
         if (!isCustom && custom.parentElement === selectSample) {
             selectSample.removeChild(custom);
@@ -859,13 +850,15 @@ import { Note } from "../src/MusicalScore/VoiceData";
         // Enable controls again
         enable();
         // 发送初始第一个值
+        // ws.send(getNowNote());
+
         console.log(getNowNote());
     }
 
     function logCanvasSize() {
         for (const zoomDiv of zoomDivs) {
             if (zoomDiv) {
-                zoomDiv.innerHTML = Math.floor(zoom * 100.0) + "%";
+                zoomDiv.innerHTML = Math.floor(zoom * 70.0) + "%";
             }
         }
     }
@@ -1034,7 +1027,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         else {
             alert("No vaild .xml/.mxl/.musicxml file!");
         }
-    
+
     });
 
 

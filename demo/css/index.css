@@ -1,0 +1,79 @@
+
+.container-div {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    padding: 0px 5px;
+    overflow: hidden;
+
+}
+
+#video {
+    width: 600px;
+    height: 60%;
+}
+
+.right {
+    width: 100%;
+    overflow: auto;
+
+}
+
+.ul-con {
+    display: flex;
+    justify-content: space-between;
+}
+
+.top-bar-wrapper {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px 0 40px;
+    margin-bottom: 2px;
+    box-shadow: 0px 2px 5px -5px rgba(0,0,0,.8);
+}
+
+.info {
+    display: flex;
+    align-items: center;
+}
+
+i {
+    margin: 0 2px 0 16px;
+    font-size: 26px;
+}
+
+.operate {
+    display: flex;
+    font-size: 20px;
+    line-height: 20px;
+}
+
+.avatar-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0 16px;
+}
+
+.personal {
+    display: flex;
+}
+
+.department {
+    font-size: 14px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.name {
+    font-weight: bolder;
+    font-size: 16px;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
