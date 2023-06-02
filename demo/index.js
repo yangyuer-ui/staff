@@ -328,6 +328,10 @@ import { Note } from "../src/MusicalScore/VoiceData";
             clipPhoto();
         });
 
+        document.getElementById('userinfoBtn').addEventListener("click", function () {
+            window.open("register.html")
+        });
+
         //var defaultDisplayVisibleValue = "block"; // TODO in some browsers flow could be the better/default value
         var defaultVisibilityValue = "visible";
         showDebugControls = paramDebugControls !== '0';
