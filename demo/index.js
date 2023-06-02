@@ -322,14 +322,20 @@ import { Note } from "../src/MusicalScore/VoiceData";
 
         document.getElementById('stopRecorder').addEventListener("click", function () {
             stopRecorder();
+            $('.ui.basic.modal').modal('show')
+          ;
         });
 
         document.getElementById('clipPhoto').addEventListener("click", function () {
             clipPhoto();
         });
 
-        document.getElementById('userinfoBtn').addEventListener("click", function () {
+        document.getElementById('register').addEventListener("click", function () {
             window.open("register.html")
+        });
+
+        document.getElementById('userinfoBtn').addEventListener("click", function () {
+            window.open("userinfo.html")
         });
 
         //var defaultDisplayVisibleValue = "block"; // TODO in some browsers flow could be the better/default value
@@ -525,7 +531,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         //openSheetMusicDisplay.DrawBottomLine = true;
         //openSheetMusicDisplay.setDrawBoundingBox("GraphicalLabel", false);
         openSheetMusicDisplay.setLogLevel('info'); // set this to 'debug' if you want to see more detailed control flow information in console
-       
+
         document.getElementById('right').appendChild(canvas)
         // document.body.appendChild(canvas);
 

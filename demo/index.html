@@ -15,6 +15,31 @@
 </head>
 
 <body>
+    <div class="ui  basic modal">
+        <i class="close icon"></i>
+        <div class="header">
+          Profile Picture
+        </div>
+        <div class="image content">
+          <div class="ui medium image">
+            <img src="/images/avatar/large/chris.jpg">
+          </div>
+          <div class="description">
+            <div class="ui header">We've auto-chosen a profile image for you.</div>
+            <p>We've grabbed the following image from the <a href="https://www.gravatar.com" target="_blank">gravatar</a> image associated with your registered e-mail address.</p>
+            <p>Is it okay to use this photo?</p>
+          </div>
+        </div>
+        <div class="actions">
+          <div class="ui black deny button">
+            Nope
+          </div>
+          <div class="ui positive right labeled icon button">
+            Yep, that's me
+            <i class="checkmark icon"></i>
+          </div>
+        </div>
+      </div>
     <div>
         <div class="top-bar-wrapper">
             <div class="logo default-pointer">
@@ -23,6 +48,7 @@
             </div>
             <div class="info">
                 <div class="operate">
+                    <span id="register">注册</span>
                     <div class="ui" id="userinfoBtn">
                         <img class="ui avatar image" src="./assets/img/effeb063fb78eef670634a77e9bb1a6e.jpg">
                         <span>杨玉莹</span>
@@ -37,6 +63,7 @@
                 </div>
             </div>
         </div>
+
         <div class="container-div">
             <!-- 屏幕录制 -->
             <div class="left">
@@ -52,6 +79,7 @@
                 <div class="ui fade button" id="clipPhoto">
                     <div>截取图片</div>
                 </div>
+        
             </div>
             <div class="right" id="right">
                 <div class="ui four  ul-con" id="divControls" style="visibility: hidden; opacity: 0.0">
@@ -170,6 +198,9 @@
                 </div>
             </div>
         </div>
+
+    
     </div>
 </body>
+
 </html>
