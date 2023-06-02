@@ -10,6 +10,8 @@ import { Note } from "../src/MusicalScore/VoiceData";
     var openSheetMusicDisplay;
     var sampleFolder = "",
         samples = {
+            "Telemann, 981769": "981769.musicxml",
+            "东方红, 东方红": "东方红.musicxml",
             "Beethoven, L.v. - An die ferne Geliebte": "Beethoven_AnDieFerneGeliebte.xml",
             "Clementi, M. - Sonatina Op.36 No.1 Pt.1": "MuzioClementi_SonatinaOpus36No1_Part1.xml",
             "Clementi, M. - Sonatina Op.36 No.1 Pt.2": "MuzioClementi_SonatinaOpus36No1_Part2.xml",
@@ -70,6 +72,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
             "Schumann, R. - Dichterliebe": "Dichterliebe01.xml",
             "Telemann, G.P. - Sonate-Nr.1.1-Dolce": "TelemannWV40.102_Sonate-Nr.1.1-Dolce.xml",
             "Telemann, G.P. - Sonate-Nr.1.2-Allegro": "TelemannWV40.102_Sonate-Nr.1.2-Allegro-F-Dur.xml",
+            
         },
 
         zoom = 1.0,
@@ -120,7 +123,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
     var showDebugControls = false;
 
     document.title = "OpenSheetMusicDisplay Demo";
-    var ws = new WebSocket("ws://localhost:5001/playWeb");
+    var ws = new WebSocket("ws://localhost:5002/playTrue");
     //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
     ws.onopen = function () {
         //当WebSocket创建成功时，触发onopen事件
@@ -138,9 +141,15 @@ import { Note } from "../src/MusicalScore/VoiceData";
     }
     ws.onmessage = function (e) {
         if (e.data) {
+            console.log('jieshou:'+e.data);
             openSheetMusicDisplay.cursor.next();
             // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
-            ws.send(getNowNote());
+            console.log('fasong'+getNowNote());
+            if(getNowNote().length===0){
+                openSheetMusicDisplay.cursor.next();
+            }else{
+                  ws.send(getNowNote());
+            }
         }
     }
 
@@ -217,10 +226,14 @@ import { Note } from "../src/MusicalScore/VoiceData";
         // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
         openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries.forEach((item1) => {
             item1.notes.forEach((item2) => {
-                arrNote.push(item2.halfTone)
+                if(item2.halfTone!=0){
+                    arrNote.push(item2.halfTone+12);
+                }
             })
         })
-        return arrNote;
+      
+        arrNote= [...new Set(arrNote)] ;
+        return arrNote.toString();
     }
     // Initialization code
     function init() {
@@ -554,6 +567,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
             let re = new Note();
             openSheetMusicDisplay.cursor.next();
             console.log(getNowNote());
+            debugger
             // osmd.graphic.measureList[0][0].staffEntries[0].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#FF0000" // for the piano note, try measureList[0][1].
             // osmd.graphic.measureList[0][0].staffEntries[1].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#0000FF" // blue note on "Auf"
             // osmd.render()
@@ -860,8 +874,13 @@ import { Note } from "../src/MusicalScore/VoiceData";
         // Enable controls again
         enable();
         // 发送初始第一个值
-        // ws.send(getNowNote());
-
+        setTimeout(() => {
+            if(getNowNote().length===0){
+                openSheetMusicDisplay.cursor.next();
+            }else{
+                  ws.send(getNowNote());
+            }
+        }, 100);
         console.log(getNowNote());
     }
 
