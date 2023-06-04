@@ -145,11 +145,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
             openSheetMusicDisplay.cursor.next();
             // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
             console.log('fasong'+getNowNote());
-            if(getNowNote().length===0){
-                openSheetMusicDisplay.cursor.next();
-            }else{
-                  ws.send(getNowNote());
-            }
+            ws.send(getNowNote());
         }
     }
 
@@ -226,9 +222,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
         openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries.forEach((item1) => {
             item1.notes.forEach((item2) => {
-                if(item2.halfTone!=0){
-                    arrNote.push(item2.halfTone+12);
-                }
+                arrNote.push(item2.halfTone+12);
             })
         })
       
@@ -875,11 +869,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         enable();
         // 发送初始第一个值
         setTimeout(() => {
-            if(getNowNote().length===0){
-                openSheetMusicDisplay.cursor.next();
-            }else{
-                  ws.send(getNowNote());
-            }
+            ws.send(getNowNote());
         }, 100);
         console.log(getNowNote());
     }
