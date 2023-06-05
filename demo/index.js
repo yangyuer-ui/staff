@@ -1,3 +1,4 @@
+
 import { OpenSheetMusicDisplay } from '../src/OpenSheetMusicDisplay/OpenSheetMusicDisplay';
 import { BackendType } from '../src/OpenSheetMusicDisplay/OSMDOptions';
 import * as jsPDF from '../node_modules/jspdf/dist/jspdf.es.min';
@@ -5,13 +6,15 @@ import * as svg2pdf from '../node_modules/svg2pdf.js/dist/svg2pdf.umd.min';
 import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculator';
 import { Note } from "../src/MusicalScore/VoiceData";
 /*jslint browser:true */
-(function () {
-    "use strict";
+
+$(document).ready(function () {
+    $('#stopRecorder').on("click", function () {
+        stopRecorder();
+    });
+
     var openSheetMusicDisplay;
     var sampleFolder = "",
         samples = {
-            "Telemann, 981769": "981769.musicxml",
-            "东方红, 东方红": "东方红.musicxml",
             "Beethoven, L.v. - An die ferne Geliebte": "Beethoven_AnDieFerneGeliebte.xml",
             "Clementi, M. - Sonatina Op.36 No.1 Pt.1": "MuzioClementi_SonatinaOpus36No1_Part1.xml",
             "Clementi, M. - Sonatina Op.36 No.1 Pt.2": "MuzioClementi_SonatinaOpus36No1_Part2.xml",
@@ -72,7 +75,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
             "Schumann, R. - Dichterliebe": "Dichterliebe01.xml",
             "Telemann, G.P. - Sonate-Nr.1.1-Dolce": "TelemannWV40.102_Sonate-Nr.1.1-Dolce.xml",
             "Telemann, G.P. - Sonate-Nr.1.2-Allegro": "TelemannWV40.102_Sonate-Nr.1.2-Allegro-F-Dur.xml",
-            
+
         },
 
         zoom = 1.0,
@@ -141,11 +144,11 @@ import { Note } from "../src/MusicalScore/VoiceData";
     }
     ws.onmessage = function (e) {
         if (e.data) {
-            console.log('jieshou:'+e.data);
+            console.log('jieshou:' + e.data);
             openSheetMusicDisplay.cursor.next();
             // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
-            console.log('fasong'+getNowNote());
-            ws.send(getNowNote());
+            console.log('fasong' + getNowNote());
+            // ws.send(getNowNote());
         }
     }
 
@@ -195,10 +198,28 @@ import { Note } from "../src/MusicalScore/VoiceData";
 
     // 停止录屏
     function stopRecorder() {
-        mediaStreamTrack.getVideoTracks().forEach((track) => {
-            track.stop();
-        });
-        mediaRecorder.stop();
+        if (!mediaStreamTrack) {
+            document.getElementsByClassName('message')[0].classList.remove('hidden')
+        } else {
+            mediaStreamTrack.getVideoTracks().forEach((track) => {
+                track.stop();
+            });
+            mediaRecorder.stop();
+            document.getElementsByClassName('modal')[0].classList.add('dimmer').add('transition').add('visible').add('active').add('page')
+            document.getElementsByClassName('modal')[0].classList.add('dimmer')
+            document.getElementsByClassName('modal')[0].classList.add('dimmer')
+            document.getElementsByClassName('modal')[0].classList.add('dimmer')
+            document.getElementsByClassName('modal')[0].classList.add('dimmer')
+            // $(".ui.modal").modal({ //各种回调方法
+            //     onApprove: function () { //单击确认按钮
+            //         console.log("确认")
+            //     },
+            //     onDeny: function () {  //单击取消按钮
+            //         console.log("拒绝")
+            //     }
+            // })
+            // .modal("show");
+        }
     }
 
     // 截取图片
@@ -216,18 +237,27 @@ import { Note } from "../src/MusicalScore/VoiceData";
         a.href = canvas.toDataURL('image/png');
         a.click();
     }
+
     // 获取当前要弹奏的音符
     function getNowNote() {
         let arrNote = [];
         // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
-        openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries.forEach((item1) => {
-            item1.notes.forEach((item2) => {
-                arrNote.push(item2.halfTone+12);
+        if (openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries) {
+            openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries.forEach((item1) => {
+                item1.notes.forEach((item2) => {
+                    if (item2.halfTone === 0) {
+                        arrNote.push(item2.halfTone);
+                    } else {
+                        arrNote.push(item2.halfTone + 12);
+                    }
+                })
             })
-        })
-      
-        arrNote= [...new Set(arrNote)] ;
-        return arrNote.toString();
+
+            arrNote = [...new Set(arrNote)];
+            return arrNote.toString();
+        } else {
+            return '';
+        }
     }
     // Initialization code
     function init() {
@@ -327,11 +357,6 @@ import { Note } from "../src/MusicalScore/VoiceData";
             startRecorder();
         });
 
-        document.getElementById('stopRecorder').addEventListener("click", function () {
-            stopRecorder();
-            $('.ui.basic.modal').modal('show')
-          ;
-        });
 
         document.getElementById('clipPhoto').addEventListener("click", function () {
             clipPhoto();
@@ -544,24 +569,28 @@ import { Note } from "../src/MusicalScore/VoiceData";
 
         window.addEventListener("keydown", function (e) {
             var event = window.event ? window.event : e;
-            // left arrow key
             if (event.keyCode === 37) {
                 openSheetMusicDisplay.cursor.previous();
+                console.log('fasong:' + getNowNote());
+                // ws.send(getNowNote());
             }
-            // right arrow key
             if (event.keyCode === 39) {
                 openSheetMusicDisplay.cursor.next();
+                console.log('fasong:' + getNowNote());
+                // ws.send(getNowNote());
             }
         });
         previousCursorBtn?.addEventListener("click", function () {
             openSheetMusicDisplay.cursor.previous();
+            console.log('fasong:' + getNowNote());
+            // ws.send(getNowNote());
         });
         nextCursorBtn.addEventListener("click", function () {
             // debugger
             let re = new Note();
             openSheetMusicDisplay.cursor.next();
-            console.log(getNowNote());
-            debugger
+            console.log('fasong:' + getNowNote());
+            // ws.send(getNowNote());
             // osmd.graphic.measureList[0][0].staffEntries[0].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#FF0000" // for the piano note, try measureList[0][1].
             // osmd.graphic.measureList[0][0].staffEntries[1].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#0000FF" // blue note on "Auf"
             // osmd.render()
@@ -869,7 +898,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         enable();
         // 发送初始第一个值
         setTimeout(() => {
-            ws.send(getNowNote());
+            // ws.send(getNowNote());
         }, 100);
         console.log(getNowNote());
     }
@@ -1011,7 +1040,7 @@ import { Note } from "../src/MusicalScore/VoiceData";
         init();
         getIpPath();
         getSongs();
-
+        
     });
     window.addEventListener("dragenter", function (event) {
         event.preventDefault();
@@ -1051,3 +1080,4 @@ import { Note } from "../src/MusicalScore/VoiceData";
 
 
 }());
+
