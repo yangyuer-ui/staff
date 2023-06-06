@@ -5,13 +5,10 @@ import * as jsPDF from '../node_modules/jspdf/dist/jspdf.es.min';
 import * as svg2pdf from '../node_modules/svg2pdf.js/dist/svg2pdf.umd.min';
 import { TransposeCalculator } from '../src/Plugins/Transpose/TransposeCalculator';
 import { Note } from "../src/MusicalScore/VoiceData";
-/*jslint browser:true */
-
-$(document).ready(function () {
+$(function () {
     $('#stopRecorder').on("click", function () {
         stopRecorder();
     });
-
     var openSheetMusicDisplay;
     var sampleFolder = "",
         samples = {
@@ -205,20 +202,15 @@ $(document).ready(function () {
                 track.stop();
             });
             mediaRecorder.stop();
-            document.getElementsByClassName('modal')[0].classList.add('dimmer').add('transition').add('visible').add('active').add('page')
-            document.getElementsByClassName('modal')[0].classList.add('dimmer')
-            document.getElementsByClassName('modal')[0].classList.add('dimmer')
-            document.getElementsByClassName('modal')[0].classList.add('dimmer')
-            document.getElementsByClassName('modal')[0].classList.add('dimmer')
-            // $(".ui.modal").modal({ //各种回调方法
-            //     onApprove: function () { //单击确认按钮
-            //         console.log("确认")
-            //     },
-            //     onDeny: function () {  //单击取消按钮
-            //         console.log("拒绝")
-            //     }
-            // })
-            // .modal("show");
+            window.$(".ui.modal").modal({ //各种回调方法
+                onApprove: function () { //单击确认按钮
+                    console.log("确认")
+                },
+                onDeny: function () {  //单击取消按钮
+                    console.log("拒绝")
+                }
+            })
+            .modal("show");
         }
     }
 
