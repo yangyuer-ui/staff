@@ -69,7 +69,7 @@
     <div class="image content">
       <img class="image" height="60px" width="60px" src="./assets/img/effeb063fb78eef670634a77e9bb1a6e.jpg">
       <div class="ui input">
-        <input type="file" accept="image/*" />
+        <input type="file" class="upload" accept="image/*" />
       </div>
       <div class="description">
         <p></p>
@@ -92,19 +92,132 @@
             <h4 class="ui header">我的共享</h4>
             <p>查看共享给我的视频</p>
           </a>
-          <a class="item">
-            Links
-          </a>
         </div>
       </div>
       <div class="twelve wide stretched column">
         <div class="ui segment" id="userMsg">
-          <img class="ui middle aligned  circular image" id="headerImg"
+          <div> <img class="ui middle aligned  circular image" id="headerImg"
             src="./assets/img/effeb063fb78eef670634a77e9bb1a6e.jpg">
-          <span style="margin-left: 50px;">杨玉莹</span>
+          <span style="margin-left: 50px;font-size: 20px;font-weight: bold;">杨玉莹</span></div>
+          <div class="total-msg">
+            <div class="ui olive  statistic">
+              <div class="label">我的上传 </div>
+              <div class="value">
+                40,509
+              </div>
+            </div>
+            <div class="ui green  statistic">
+              <div class="label">我的共享 </div>
+              <div class="value">
+                4888
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="ui segment" id="myUpload">这是可拉 </div>
-        <div class="ui segment" id="myShare">这配标签切换页的高度 </div>
+
+        <div class="ui segment" id="myUpload">
+         
+          <table class="ui black table">
+            <thead>
+              <tr>
+                <th>课程名</th>
+                <th>创作者</th>
+                <th>上传时间</th>
+                <th>时长</th>
+                <th>可见范围</th>
+                <th>备注</th>
+                <th>操作
+                  <div class="ui mini icon input">
+                    <input type="text" placeholder="搜索...">
+                    <i class="search icon"></i>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>苹果</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>xx</td>
+                <td>xxx</td>
+                <td>
+                  <div class="ui primary basic button">播放</div>
+                  <div class="ui primary basic button">隐藏</div>
+                  <button class="ui red basic button">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td>橘黄色</td>
+                <td>310</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>
+                  <div class="ui primary basic button">播放</div>
+                  <div class="ui primary basic button">隐藏</div>
+                  <button class="ui red basic button">删除</button>
+                </td>
+              </tr>
+              <tr>
+                <td>橘黄色</td>
+                <td>310</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>xxx</td>
+                <td>
+                  <div class="ui primary basic button">播放</div>
+                  <div class="ui primary basic button">隐藏</div>
+                  <button class="ui red basic button">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ui segment" id="myShare">  <table class="ui black table">
+          <thead>
+            <tr>
+              <th>课程名</th>
+              <th>创作者</th>
+              <th>上传时间</th>
+              <th>时长</th>
+              <th>备注</th>
+              <th>操作
+                <div class="ui mini icon input">
+                  <input type="text" placeholder="搜索...">
+                  <i class="search icon"></i>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>苹果</td>
+              <td>xxx</td>
+              <td>xxx</td>
+              <td>xxx</td>
+              <td>xxx</td>
+              <td>
+                <div class="ui primary basic button">播放</div>
+                <div class="ui primary basic button">隐藏</div>
+              </td>
+            </tr>
+            <tr>
+              <td>橘黄色</td>
+              <td>310</td>
+              <td>xxx</td>
+              <td>xxx</td>
+              <td>xxx</td>
+              <td>
+                <div class="ui primary basic button">播放</div>
+                <div class="ui primary basic button">隐藏</div>
+              </td>
+            </tr>
+          </tbody>
+        </table> </div>
       </div>
     </div>
   </div>

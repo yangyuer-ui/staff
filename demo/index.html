@@ -38,7 +38,6 @@
                     <label>备注</label>
                     <input type="text" name="last-name" placeholder="请输入用户名/昵称">
                 </div>
-                <div class="ui primary button">提交</div>
             </form>
         </div>
         <div class="actions">
@@ -98,9 +97,9 @@
                             style="width:180px; height:35%; visibility: hidden">
                         </select>
                     </div>
-                    <div style="width: 50%;">
+                    <div style="width: 50%;display: flex;">
                         <span class="ui header">光标控件:</span>
-                        <div style="display: flex;">
+                        <div >
                             <div class="ui animated fade button" id="show-cursor-btn">
                                 <div class="visible content">显示</div>
                                 <div class="hidden content">
@@ -119,8 +118,6 @@
                                     <i class="undo icon"></i>
                                 </div>
                             </div>
-                        </div>
-                        <div style="display: flex;">
                             <div class="ui animated fade button" id="previous-cursor-btn">
                                 <div class="visible content">上一个</div>
                                 <div class="hidden content">
@@ -140,9 +137,8 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
-                    <div>
+                    <div style="display: flex;">
                         <h3 class="ui header">缩放控制:</h3>
                         <div class="ui buttons" id="zoomControlsButtons">
                             <div class="ui button" id="zoom-in-btn">
@@ -151,9 +147,8 @@
                             <div class="ui button" id="zoom-out-btn">
                                 <i class="search minus icon"></i>
                             </div>
-                            <span style="font-size: 15px;" id="zoom-str">???</span>
                         </div>
-
+                        <span style="font-size: 15px;" id="zoom-str">???</span>
                     </div>
                 </div>
                 <div id="optionalControls">
