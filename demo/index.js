@@ -11,69 +11,7 @@ $(function () {
     });
     var openSheetMusicDisplay;
     var sampleFolder = "",
-        samples = {
-            "Beethoven, L.v. - An die ferne Geliebte": "Beethoven_AnDieFerneGeliebte.xml",
-            "Clementi, M. - Sonatina Op.36 No.1 Pt.1": "MuzioClementi_SonatinaOpus36No1_Part1.xml",
-            "Clementi, M. - Sonatina Op.36 No.1 Pt.2": "MuzioClementi_SonatinaOpus36No1_Part2.xml",
-            "Clementi, M. - Sonatina Op.36 No.3 Pt.1": "MuzioClementi_SonatinaOpus36No3_Part1.xml",
-            "Clementi, M. - Sonatina Op.36 No.3 Pt.2": "MuzioClementi_SonatinaOpus36No3_Part2.xml",
-            "Bach, J.S. - Praeludium in C-Dur BWV846 1": "JohannSebastianBach_PraeludiumInCDur_BWV846_1.xml",
-            "Bach, J.S. - Air": "JohannSebastianBach_Air.xml",
-            "Gounod, C. - Méditation": "CharlesGounod_Meditation.xml",
-            "Haydn, J. - Concertante Cello": "JosephHaydn_ConcertanteCello.xml",
-            "Joplin, S. - Elite Syncopations": "ScottJoplin_EliteSyncopations.xml",
-            "Joplin, S. - The Entertainer": "ScottJoplin_The_Entertainer.xml",
-            "Mozart, W.A. - An Chloe": "Mozart_AnChloe.xml",
-            "Mozart, W.A. - Das Veilchen": "Mozart_DasVeilchen.xml",
-            "Mozart, W.A. - Clarinet Quintet (Excerpt)": "Mozart_Clarinet_Quintet_Excerpt.mxl",
-            "Mozart, W.A. - String Quartet in G, K. 387, 1st Mvmt Excerpt": "Mozart_String_Quartet_in_G_K._387_1st_Mvmnt_excerpt.musicxml",
-            "Mozart/Holzer - Land der Berge (national anthem of Austria)": "Land_der_Berge.musicxml",
-            "OSMD Function Test - All": "OSMD_function_test_all.xml",
-            "OSMD Function Test - Accidentals": "OSMD_function_test_accidentals.musicxml",
-            "OSMD Function Test - Autobeam": "OSMD_function_test_autobeam.musicxml",
-            "OSMD Function Test - Auto-/Custom-Coloring": "OSMD_function_test_auto-custom-coloring-entchen.musicxml",
-            "OSMD Function Test - Bar lines": "OSMD_function_test_bar_lines.musicxml",
-            "OSMD Function Test - Chord Symbols": "OSMD_function_test_chord_symbols.musicxml",
-            "OSMD Function Test - Chord Spacing": "OSMD_function_test_chord_spacing.mxl",
-            "OSMD Function Test - Chord Symbols - Various Chords": "OSMD_function_test_chord_tests_various.musicxml",
-            "OSMD Function Test - Chord Symbols - BrookeWestSample": "BrookeWestSample.mxl",
-            "OSMD Function Test - Color (from XML)": "OSMD_function_test_color.musicxml",
-            "OSMD Function Test - Container height (compacttight mode)": "OSMD_Function_Test_Container_height.musicxml",
-            "OSMD Function Test - Drumset": "OSMD_function_test_drumset.musicxml",
-            "OSMD Function Test - Drums on one Line": "OSMD_Function_Test_Drums_one_line_snare_plus_piano.musicxml",
-            "OSMD Function Test - Expressions": "OSMD_function_test_expressions.musicxml",
-            "OSMD Function Test - Expressions Overlap": "OSMD_function_test_expressions_overlap.musicxml",
-            "OSMD Function Test - Grace Notes": "OSMD_function_test_GraceNotes.xml",
-            "OSMD Function Test - Metronome Marks": "OSMD_function_test_metronome_marks.mxl",
-            "OSMD Function Test - Multiple Rest Measures": "OSMD_function_test_multiple_rest_measures.musicxml",
-            "OSMD Function Test - Invisible Notes": "OSMD_function_test_invisible_notes.musicxml",
-            "OSMD Function Test - Notehead Shapes": "OSMD_function_test_noteheadShapes.musicxml",
-            "OSMD Function Test - Ornaments": "OSMD_function_test_Ornaments.xml",
-            "OSMD Function Test - Pedals": "OSMD_Function_Test_Pedals.musicxml",
-            "OSMD Function Test - Selecting Measures To Draw": "OSMD_function_test_measuresToDraw_Beethoven_AnDieFerneGeliebte.xml",
-            "OSMD Function Test - System and Page Breaks": "OSMD_Function_Test_System_and_Page_Breaks_4_pages.mxl",
-            "OSMD Function Test - Tabulature": "OSMD_Function_Test_Tabulature_hayden_study_1.mxl",
-            "OSMD Function Test - Tabulature MultiBends": "OSMD_Function_Test_Tablature_Multibends.musicxml",
-            "OSMD Function Test - Tabulature All Effects": "OSMD_Function_Test_Tablature_Alleffects.musicxml",
-            "OSMD Function Test - Tremolo": "OSMD_Function_Test_Tremolo_2bars.musicxml",
-            "OSMD Function Test - Labels": "OSMD_Function_Test_Labels.musicxml",
-            "OSMD Function Test - High Slur Test": "test_slurs_highNotes.musicxml",
-            "OSMD Function Test - Auto Multirest Measures Single Staff": "Test_Auto_Multirest_1.musicxml",
-            "OSMD Function Test - Auto Multirest Measures Multiple Staves": "Test_Auto_Multirest_2.musicxml",
-            "OSMD Function Test - String number collisions": "test_string_number_collisions.musicxml",
-            "OSMD Function Test - Repeat Stave Connectors": "OSMD_function_Test_Repeat.musicxml",
-            "OSMD Function Test - Voice Alignment": "OSMD_Function_Test_Voice_Alignment.musicxml",
-            "Schubert, F. - An Die Musik": "Schubert_An_die_Musik.xml",
-            "Actor, L. - Prelude (Large Sample, loading time)": "ActorPreludeSample.xml",
-            "Actor, L. - Prelude (Large, No Print Part Names)": "ActorPreludeSample_PartName.xml",
-            "Anonymous - Saltarello": "Saltarello.mxl",
-            "Debussy, C. - Mandoline": "Debussy_Mandoline.xml",
-            "Levasseur, F. - Parlez Mois": "Parlez-moi.mxl",
-            "Schumann, R. - Dichterliebe": "Dichterliebe01.xml",
-            "Telemann, G.P. - Sonate-Nr.1.1-Dolce": "TelemannWV40.102_Sonate-Nr.1.1-Dolce.xml",
-            "Telemann, G.P. - Sonate-Nr.1.2-Allegro": "TelemannWV40.102_Sonate-Nr.1.2-Allegro-F-Dur.xml",
-
-        },
+        samples = {   },
 
         zoom = 1.0,
         // HTML Elements in the page
@@ -469,7 +407,7 @@ $(function () {
                 selectSample.appendChild(option);
             }
         }
-        if (selectSample) {
+        if ( JSON.stringify(selectSample)!='{}') {
             selectSample.onchange = selectSampleOnChange;
         }
 
@@ -624,16 +562,11 @@ $(function () {
             if (openSheetMusicDisplay.getLogLevel() < 2) { // debug or trace
                 console.log("[OSMD] selectSampleOnChange with " + paramOpenUrl);
             }
-            // DEBUG: cause an error for a certain sample, for testing
-            // if (paramOpenUrl.startsWith("Beethoven")) {
-            //     paramOpenUrl.causeError();
-            // }
             selectSampleOnChange(paramOpenUrl);
         } else {
             if (openSheetMusicDisplay.getLogLevel() < 2) { // debug or trace
                 console.log("[OSMD] selectSampleOnChange without param");
             }
-            selectSampleOnChange();
         }
 
 
@@ -657,10 +590,10 @@ $(function () {
         //回车执行查询
         let baseUrl = sessionStorage.getItem('ipPath');
         let xhr = new XMLHttpRequest()
-        xhr.open('POST', `http://${baseUrl}:16007/search_midi`)
+        xhr.open('POST', `http://${baseUrl}:16007/search_xml`)
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
         document.getElementById('selectSample').value
-        xhr.send(window.Qs.stringify({ 'searchMidi': '' }))
+        xhr.send(window.Qs.stringify({ 'searchXml': '' }))
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
@@ -671,13 +604,14 @@ $(function () {
                         for (let i = 0; i < res.seatchResList.length; i++) {
                             if (res.seatchResList.length > 0) {
                                 option = document.createElement("option");
-                                option.value = `${res.seatchResList[i].savePath}.musicxml`;
-                                option.textContent = res.seatchResList[i].midiName;
+                                option.value = `http://${baseUrl}${res.seatchResList[i].savePath}`;
+                                option.textContent = res.seatchResList[i].xmlName;
                             }
                             if (selectSample) {
                                 selectSample.appendChild(option);
                             }
                         }
+                        selectSampleOnChange();
                     }
                     else {
                         html = `<span class="dictName">
@@ -739,14 +673,16 @@ $(function () {
         disable();
         var isCustom = typeof str === "string";
         if (!isCustom) {
-            if (selectSample) {
+            debugger
+            if (JSON.stringify(selectSample)!= "{}") {
                 str = sampleFolder + selectSample.value;
             } else {
-                if (samples && samples.length > 0) {
-                    str = sampleFolder + samples[0];
-                } else {
-                    return; // no sample to load right now
-                }
+                // if (samples && samples.length > 0) {
+                //     str = sampleFolder + samples[0];
+                // } else {
+                //     return; // no sample to load right now
+                // }
+                return;
             }
         }
         // zoom = 1.0;
@@ -892,7 +828,6 @@ $(function () {
         setTimeout(() => {
             // ws.send(getNowNote());
         }, 100);
-        console.log(getNowNote());
     }
 
     function logCanvasSize() {
@@ -1029,10 +964,9 @@ $(function () {
 
     // Register events: load, drag&drop
     window.addEventListener("load", function () {
-        init();
         getIpPath();
         getSongs();
-        
+        init();
     });
     window.addEventListener("dragenter", function (event) {
         event.preventDefault();
