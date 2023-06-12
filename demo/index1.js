@@ -82,14 +82,14 @@ $(function () {
             openSheetMusicDisplay.cursor.next();
             // 当前音openSheetMusicDisplay.cursor.Iterator.CurrentVoiceEntries
             console.log('fasong' + getNowNote());
-            // ws.send(getNowNote());
+            ws.send(getNowNote());
         }
     }
     // 播放暂停接口
-    var wsRecorder = new WebSocket("ws://localhost:5002/playTrue");
+    var wsRecorder = new WebSocket("ws://localhost:5003/playCtl");
     wsRecorder.onopen = function () {
         //当WebSocket创建成功时，触发onopen事件
-        console.log("录制开始");
+        console.log("录制ws打开");
     }
     wsRecorder.onclose = function (e) {
         //当客户端收到服务端发送的关闭连接请求时，触发onclose事件
@@ -104,7 +104,8 @@ $(function () {
     let mediaStreamTrack; // 视频实时流
     // 开始录屏
     async function startRecorder() {
-        // wsRecorder.send('play');
+        console.log('kaishiluzhi')
+        wsRecorder.send('play');
         mediaStreamTrack = await navigator.mediaDevices.getUserMedia({
             video: true
         })
@@ -124,10 +125,9 @@ $(function () {
             chunks.push(e.data)
         })
         mediaRecorder.addEventListener('stop', function () {
-            let wsRecorder = new WebSocket("ws://localhost:5002/playTrue");
             // 暂停
             console.log('暂停录制');
-            // wsRecorder.send('pause');
+            wsRecorder.send('pause');
             let blob = new Blob(chunks, {
                 type: chunks[0].type
             })
@@ -151,8 +151,8 @@ $(function () {
     // 停止录屏
     function stopRecorder() {
         // 暂停
-        console.log('暂停录制');
-        // wsRecorder.send('stop');
+        console.log('jieshu录制');
+        wsRecorder.send('stop');
 
         wsRecorder.onmessage = function (e) {
             if (e.data) {
@@ -528,25 +528,25 @@ $(function () {
             if (event.keyCode === 37) {
                 openSheetMusicDisplay.cursor.previous();
                 console.log('fasong:' + getNowNote());
-                // ws.send(getNowNote());
+                ws.send(getNowNote());
             }
             if (event.keyCode === 39) {
                 openSheetMusicDisplay.cursor.next();
                 console.log('fasong:' + getNowNote());
-                // ws.send(getNowNote());
+                ws.send(getNowNote());
             }
         });
         previousCursorBtn?.addEventListener("click", function () {
             openSheetMusicDisplay.cursor.previous();
             console.log('fasong:' + getNowNote());
-            // ws.send(getNowNote());
+            ws.send(getNowNote());
         });
         nextCursorBtn.addEventListener("click", function () {
             // debugger
             let re = new Note();
             openSheetMusicDisplay.cursor.next();
             console.log('fasong:' + getNowNote());
-            // ws.send(getNowNote());
+            ws.send(getNowNote());
             // osmd.graphic.measureList[0][0].staffEntries[0].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#FF0000" // for the piano note, try measureList[0][1].
             // osmd.graphic.measureList[0][0].staffEntries[1].graphicalVoiceEntries[0].notes[0].sourceNote.noteheadColor = "#0000FF" // blue note on "Auf"
             // osmd.render()
@@ -849,7 +849,7 @@ $(function () {
         enable();
         // 发送初始第一个值
         setTimeout(() => {
-            // ws.send(getNowNote());
+            ws.send(getNowNote());
         }, 100);
     }
 
@@ -988,12 +988,12 @@ $(function () {
     // Register events: load, drag&drop
     window.addEventListener("load", function () {
         // wsRecorder.send('MACIP');
-        wsRecorder.onmessage = function (e) {
-            if (e.data) {
-                console.log('获取mac地址内容:' + e.data);
-                sessionStorage.setItem('customerId', ' e.data')
-            }
-        }
+        // wsRecorder.onmessage = function (e) {
+        //     if (e.data) {
+        //         console.log('获取mac地址内容:' + e.data);
+        //         sessionStorage.setItem('customerId', ' e.data')
+        //     }
+        // }
         getIpPath();
         getSongs();
         init();
