@@ -11,7 +11,7 @@ $(function () {
     });
     var openSheetMusicDisplay;
     var sampleFolder = "",
-        samples = {   },
+        samples = {},
 
         zoom = 1.0,
         // HTML Elements in the page
@@ -86,12 +86,27 @@ $(function () {
             // ws.send(getNowNote());
         }
     }
-
+    // 播放暂停接口
+    var wsRecorder = new WebSocket("ws://localhost:5002/playTrue");
+    wsRecorder.onopen = function () {
+        //当WebSocket创建成功时，触发onopen事件
+        console.log("录制开始");
+        //ws.send("hello"); //将消息发送到服务端
+    }
+    wsRecorder.onclose = function (e) {
+        //当客户端收到服务端发送的关闭连接请求时，触发onclose事件
+        console.log("录制已断开");
+    }
+    wsRecorder.onerror = function (e) {
+        //如果出现连接、处理、接收、发送数据失败的时候触发onerror事件
+        console.log("录制发生错误" + e);
+    }
     // src 是播多媒体文件的；srcObject 是实时流
     let mediaRecorder;  // 视频录制数据
     let mediaStreamTrack; // 视频实时流
     // 开始录屏
     async function startRecorder() {
+        // wsRecorder.send('play');
         mediaStreamTrack = await navigator.mediaDevices.getUserMedia({
             video: true
         })
@@ -111,6 +126,10 @@ $(function () {
             chunks.push(e.data)
         })
         mediaRecorder.addEventListener('stop', function () {
+            let wsRecorder = new WebSocket("ws://localhost:5002/playTrue");
+            // 暂停
+            console.log('暂停录制');
+            wsRecorder.send('pause');
             let blob = new Blob(chunks, {
                 type: chunks[0].type
             })
@@ -133,6 +152,15 @@ $(function () {
 
     // 停止录屏
     function stopRecorder() {
+        // 暂停
+        console.log('暂停录制');
+        wsRecorder.send('stop');
+
+        wsRecorder.onmessage = function (e) {
+            if (e.data) {
+                console.log('结束录制内容:' + e.data);
+            }
+        }
         if (!mediaStreamTrack) {
             document.getElementsByClassName('message')[0].classList.remove('hidden')
         } else {
@@ -148,7 +176,7 @@ $(function () {
                     console.log("拒绝")
                 }
             })
-            .modal("show");
+                .modal("show");
         }
     }
 
@@ -189,6 +217,7 @@ $(function () {
             return '';
         }
     }
+
     // Initialization code
     function init() {
         var name, option;
@@ -286,7 +315,6 @@ $(function () {
         document.getElementById('startRecorder').addEventListener("click", function () {
             startRecorder();
         });
-
 
         document.getElementById('clipPhoto').addEventListener("click", function () {
             clipPhoto();
@@ -407,7 +435,7 @@ $(function () {
                 selectSample.appendChild(option);
             }
         }
-        if ( JSON.stringify(selectSample)!='{}') {
+        if (JSON.stringify(selectSample) != '{}') {
             selectSample.onchange = selectSampleOnChange;
         }
 
@@ -552,9 +580,6 @@ $(function () {
                 console.info("Can't show cursor, as it was disabled (e.g. by drawingParameters).");
             }
         });
-
-
-
         // TODO after selectSampleOnChange, the resize handler triggers immediately,
         //   so we render twice at the start of the demo.
         //   maybe delay the first osmd render, e.g. when window ready?
@@ -674,7 +699,7 @@ $(function () {
         var isCustom = typeof str === "string";
         if (!isCustom) {
             debugger
-            if (JSON.stringify(selectSample)!= "{}") {
+            if (JSON.stringify(selectSample) != "{}") {
                 str = sampleFolder + selectSample.value;
             } else {
                 // if (samples && samples.length > 0) {
@@ -964,6 +989,13 @@ $(function () {
 
     // Register events: load, drag&drop
     window.addEventListener("load", function () {
+        // wsRecorder.send('MACIP');
+        // wsRecorder.onmessage = function (e) {
+        //     if (e.data) {
+        //         console.log('获取mac地址内容:' + e.data);
+        //         sessionStorage.setItem('customerId', ' e.data')
+        //     }
+        // }
         getIpPath();
         getSongs();
         init();
