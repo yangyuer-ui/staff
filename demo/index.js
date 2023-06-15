@@ -61,6 +61,62 @@ $(function () {
     var showDebugControls = false;
 
     document.title = "OpenSheetMusicDisplay Demo";
+    /* 
+   1.鼠标点击时可以在画板上画画
+   如果鼠标双击那么停止
+   移动进画板颜色改变移除时颜色改变
+   */
+    var darwbox = document.getElementById("right");
+    var istrue = false;
+    darwbox.addEventListener("touchstart", (e) => {
+        istrue = true;
+    })
+    darwbox.addEventListener("touchmove", (e) => {
+        if (istrue == true) {
+            var x = e.touches[0].clientX;
+            var y = e.touches[0].clientY;
+            var circle = document.createElement("div");
+            circle.style.width = "10px";
+            circle.style.height = "10px";
+            circle.style.backgroundColor = "red";
+            circle.style.position = "absolute";
+            circle.style.left = x - 5 + "px";
+            circle.style.top = y - 5 + "px";
+            circle.style.borderRadius = "50%";
+            // 滚动方向枚举值
+            const DIRECTION_ENUM = {
+                DOWN: "down",
+                UP: "up",
+            };
+            // 距顶部
+            var scrollTop =
+                document.documentElement.scrollTop || document.body.scrollTop;
+            // 可视区高度
+            var clientHeight =
+                document.documentElement.clientHeight || document.body.clientHeight;
+            // 滚动条总高度
+            var scrollHeight =
+                document.documentElement.scrollHeight || document.body.scrollHeight;
+
+            let direction = DIRECTION_ENUM.DOWN;
+            // 通过滚动方向判断是触底还是触顶
+            if (direction == DIRECTION_ENUM.DOWN) {
+                // 滚动触底
+                if (scrollTop + clientHeight + threshold >= scrollHeight) {
+                    console.log("滚动触底");
+                }
+            } else {
+                // 滚动到顶部
+                if (scrollTop <= threshold) {
+                    console.log("滚动到顶部");
+                }
+            }
+            darwbox.appendChild(circle);
+        }
+    })
+    darwbox.addEventListener("touchend", (e) => {
+        istrue = false;
+    })
     var ws = new WebSocket("ws://localhost:5002/playTrue");
     //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
     ws.onopen = function () {
@@ -698,7 +754,6 @@ $(function () {
         disable();
         var isCustom = typeof str === "string";
         if (!isCustom) {
-            debugger
             if (JSON.stringify(selectSample) != "{}") {
                 str = sampleFolder + selectSample.value;
             } else {
@@ -715,6 +770,7 @@ $(function () {
         setSampleSpecificOptions(str, isCustom);
 
         openSheetMusicDisplay.load(str).then(
+
             function () {
                 // This gives you access to the osmd object in the console. Do not use in production code
                 window.osmd = openSheetMusicDisplay;
@@ -723,8 +779,9 @@ $(function () {
                 return openSheetMusicDisplay.render();
             },
             function (e) {
+
                 errorLoadingOrRenderingSheet(e, "rendering");
-            }
+            },
         ).then(
             function () {
                 return onLoadingEnd(isCustom);
