@@ -49,7 +49,20 @@
         <i class="close icon"></i>
         <div class="header">当前上传视频为空，请先录制视频</div>
     </div>
-    <div>
+    <div class="body">
+        <!-- 屏幕录制 -->
+        <div class="Screen" id="Screen">
+            <div id="contentHolder">
+                <video id="video" controls></video>
+            </div>
+
+            <div class="ui fade button" id="stopRecorder">
+                <div>结束录屏</div>
+            </div>
+            <div class="ui fade button" id="clipPhoto">
+                <div>截取图片</div>
+            </div>
+        </div>
         <div class="top-bar-wrapper">
             <div class="logo default-pointer">
                 岁寒钢琴
@@ -71,75 +84,59 @@
                 </div>
             </div>
         </div>
-
         <div class="container-div">
-            <!-- 屏幕录制 -->
-            <div class="left">
-                <div id="contentHolder">
-                    <video id="video" controls></video>
-                </div>
-                <div class="ui fade button" id="startRecorder">
-                    <div>开始录屏</div>
-                </div>
-                <div class="ui fade button" id="stopRecorder">
-                    <div>结束录屏</div>
-                </div>
-                <div class="ui fade button" id="clipPhoto">
-                    <div>截取图片</div>
-                </div>
-            </div>
             <div class="right" id="right">
-                <div class="ui four  ul-con" id="divControls" style="visibility: hidden; opacity: 0.0">
+                <div id="divControls" style="visibility: hidden; opacity: 0.0">
                     <div>
                         <span class="ui header">选择歌曲:</span>
                         <select class="ui selection dropdown" id="selectSample"
-                            style="width:180px; height:35%; visibility: hidden">
+                            style="width:110px; height:35%; visibility: hidden">
                         </select>
                     </div>
-                    <div style="width: 50%;display: flex;">
+                    <div>
+
                         <span class="ui header">光标控件:</span>
-                        <div >
-                            <div class="ui animated fade button" id="show-cursor-btn">
-                                <div class="visible content">显示</div>
-                                <div class="hidden content">
-                                    <i class="eye icon"></i>
-                                </div>
+                        <div class="ui animated fade button" id="show-cursor-btn">
+                            <div class="visible content">显示</div>
+                            <div class="hidden content">
+                                <i class="eye icon"></i>
                             </div>
-                            <div class="ui animated fade button" id="hide-cursor-btn">
-                                <div class="visible content">隐藏</div>
-                                <div class="hidden content">
-                                    <i class="eye slash icon"></i>
-                                </div>
+                        </div>
+                        <div class="ui animated fade button" id="hide-cursor-btn">
+                            <div class="visible content">隐藏</div>
+                            <div class="hidden content">
+                                <i class="eye slash icon"></i>
                             </div>
-                            <div class="ui animated fade button" id="reset-cursor-btn">
-                                <div class="visible content">重置</div>
-                                <div class="hidden content">
-                                    <i class="undo icon"></i>
-                                </div>
+                        </div>
+                        <div class="ui animated fade button" id="reset-cursor-btn">
+                            <div class="visible content">重置</div>
+                            <div class="hidden content">
+                                <i class="undo icon"></i>
                             </div>
-                            <div class="ui animated fade button" id="previous-cursor-btn">
-                                <div class="visible content">上一个</div>
-                                <div class="hidden content">
-                                    <i class="arrow left icon"></i>
-                                </div>
+                        </div>
+                        <div class="ui animated fade button" id="previous-cursor-btn">
+                            <div class="visible content">上一个</div>
+                            <div class="hidden content">
+                                <i class="arrow left icon"></i>
                             </div>
-                            <div class="ui animated fade button" id="next-cursor-btn">
-                                <div class="visible content">下一个</div>
-                                <div class="hidden content">
-                                    <i class="arrow right icon"></i>
-                                </div>
+                        </div>
+                        <div class="ui animated fade button" id="next-cursor-btn">
+                            <div class="visible content">下一个</div>
+                            <div class="hidden content">
+                                <i class="arrow right icon"></i>
                             </div>
-                            <div>
-                                <div class="ui toggle checkbox">
-                                    <input type="checkbox" name="public" id="follow-cursor-checkbox">
-                                    <label>跟随光标</label>
-                                </div>
+                        </div>
+                        <div>
+                            <div class="ui toggle checkbox">
+                                <input type="checkbox" name="public" id="follow-cursor-checkbox">
+                                <label>跟随光标</label>
                             </div>
                         </div>
                     </div>
-                    <div style="display: flex;">
-                        <h3 class="ui header">缩放控制:</h3>
+                    <div>
+                        <span class="ui header">缩放控制:</span>
                         <div class="ui buttons" id="zoomControlsButtons">
+
                             <div class="ui button" id="zoom-in-btn">
                                 <i class="search plus icon"></i>
                             </div>
@@ -147,7 +144,10 @@
                                 <i class="search minus icon"></i>
                             </div>
                         </div>
-                        <span style="font-size: 15px;" id="zoom-str">???</span>
+                        <div class="ui fade button" id="startRecorder">
+                            <div>开始录屏</div>
+                        </div>
+                        <span style="font-size: 15px;" id="zoom-str"></span>
                     </div>
                 </div>
                 <div id="optionalControls">
@@ -201,8 +201,6 @@
                 </div>
             </div>
         </div>
-
-
     </div>
 </body>
 

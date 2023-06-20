@@ -116,7 +116,49 @@ $(function () {
     })
     darwbox.addEventListener("touchend", (e) => {
         istrue = false;
-    })
+    });
+
+    // 拖拽
+    var dragging = null, tLeft, tTop, 
+    appElement = document.getElementById("Screen");
+    // 鼠标点击事件
+    document.addEventListener("mousedown", function (event) {
+        if (event.target == appElement) {
+            dragging = true;
+            var target = event.target;
+            // 获取当前所点击位置，到当前元素左侧和顶部边界的差值
+            tLeft = event.clientX - target.offsetLeft;
+            tTop = event.clientY - target.offsetTop;
+        }
+    });
+    // 鼠标松开事件
+    document.addEventListener("mouseup", function (e) {
+        dragging = false;
+    });
+    // 鼠标移动事件
+    document.addEventListener("mousemove", function (e) {
+        if (dragging) {
+            var appX = e.clientX - tLeft,
+                appY = e.clientY - tTop;
+            // X轴右侧的极限
+            if (appX + document.getElementById("Screen").clientWidth > document.querySelector(".body").clientWidth) {
+                appX = document.querySelector(".body").clientWidth - document.getElementById("Screen").clientWidth
+                // X轴左侧的极限
+            } else if (appX <= 0) {
+                appX = 0
+            }
+            // Y轴底部极限
+            if (appY + document.getElementById("Screen").clientHeight > document.querySelector(".body").clientHeight) {
+                appY = document.querySelector(".body").clientHeight - document.getElementById("Screen").clientHeight
+                // Y轴顶部极限
+            } else if (appY <= 0) {
+                appY = 0
+            }
+            appElement.style.left = appX + "px";
+            appElement.style.top = appY + "px";
+        }
+    });
+
     var ws = new WebSocket("ws://localhost:5002/playTrue");
     //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
     ws.onopen = function () {
@@ -383,7 +425,9 @@ $(function () {
         document.getElementById('userinfoBtn').addEventListener("click", function () {
             window.open("userinfo.html")
         });
-
+        document.getElementById('selectSample').addEventListener("change", function () {
+            selectSampleOnChange();
+        });
         //var defaultDisplayVisibleValue = "block"; // TODO in some browsers flow could be the better/default value
         var defaultVisibilityValue = "visible";
         showDebugControls = paramDebugControls !== '0';
@@ -494,8 +538,6 @@ $(function () {
         if (JSON.stringify(selectSample) != '{}') {
             selectSample.onchange = selectSampleOnChange;
         }
-
-
         for (const selectPageSize of selectPageSizes) {
             if (selectPageSize) {
                 selectPageSize.onchange = function (evt) {
@@ -752,6 +794,7 @@ $(function () {
     function selectSampleOnChange(str) {
         error();
         disable();
+        debugger
         var isCustom = typeof str === "string";
         if (!isCustom) {
             if (JSON.stringify(selectSample) != "{}") {
