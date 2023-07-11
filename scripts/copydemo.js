@@ -1,5 +1,3 @@
-
-
 var App, exampleSongs, parse, rowyourboat, susanna,
   modulo = function (a, b) { return (+a % (b = +b) + b) % b; };
 
@@ -183,30 +181,7 @@ function getIp() {
     }
   }
 }
-// 定义一个递归函数，将JSON转换为Markup字符串
-function jsonToMarkup(json) {
-  if (typeof json === 'string') {
-    return json;
-  } else if (Array.isArray(json)) {
-    return json.map((item, index) => 
-   jsonToMarkup(item));
-  } else if (typeof json === 'object') {
-    return Object.keys(json).map((key, index) => (
-      jsonToMarkup(json[key])
-    ));
-  } else {
-    return JSON.stringify(json);
-  }
-}
 
-// 在React组件中使用该函数将JSON数组转换为Markup字符串
-function JsonArrayToMarkup( jsonArray ) {
-  const markup = jsonArray.map((json, index) => (
-  jsonToMarkup(json)
-  ));
-
-  return markup;
-}
 
 rowyourboat = "M1.   1.|  1   2    3.|   3  2   3    4|  5--|\nT              -             -        -\nLRow, row, row your boat, gently down the stream.\nM<1.>5.| 3.     1.| 5   4 3  2|1--|\nT                       -    -\nC                   S   s \nL Ha ha, fooled ya, I'm a submarine.";
 
@@ -260,7 +235,6 @@ App = React.createClass({
       songName: "",//歌曲名称
       songLyrics: '',//歌曲主题
       songSetValue: '',//歌词设置
-      isDialog: false,
     };
   },
   playNotes: function (notes) {
@@ -438,7 +412,6 @@ App = React.createClass({
     });
   },
   toggleInputFormat: function () {
-    debugger
     if (this.state.useMarkup) {
       this.setState({
         json: JSON.stringify(parse(this.state.markup), null, 2)
@@ -451,23 +424,13 @@ App = React.createClass({
   onChangeLyric: function (e) {
     var songLyrics;
     songLyrics = e.target.value;
-    return this.setState({
+    this.setState({
       songLyrics: songLyrics
     });
   },
   onChangeSetSong: function (e) {
     this.setState({
       songSetValue: e.target.value
-    });
-  },
-  onChangeDialog: function (e) {
-    this.setState({
-      isDialog: true
-    });
-  },
-  handleClose: function (e) {
-    this.setState({
-      isDialog: false
     });
   },
   // 作词
@@ -508,70 +471,15 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          var jsonData = res.jsonData;
-          exampleSongs = [jsonData];
-          debugger
-          const markup1 = JsonArrayToMarkup(exampleSongs[0].melody);
-          console.log(markup1);
           that.setState({
-            markup: exampleSongs[0].markup,
-            json: JSON.stringify(exampleSongs[0].melody, null, 2),
-            song: exampleSongs[0],
+            songSetValue: res.generated_text.join('\n')
           });
         }
       }
     }
   },
-  // 生成音乐
-  generatMusic: function () {
-    let that = this;
-    let baseUrl = sessionStorage.getItem('ipPath');
-    let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:18860/singer`)
-    xhr.setRequestHeader('Content-Type', 'application/json')
-    xhr.send(JSON.stringify({
-      text: JSON.parse(this.state.json),
-      info: {
-        "key": this.state.rawKey,
-        "time": this.state.rawTime,
-        "perline": this.state.sectionsPerLine.toString(),
-        "volume": this.state.volume.toString(),
-        "bpm": this.state.bpm.toString()
-      }
-    }) )
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('PMusic',`http://${baseUrl}:${res.fileURL}`)
-        }
-      }
-    }
-  },
-  // 生成伴奏
-  getAccompaniment: function () {
-    let that = this;
-    let baseUrl = sessionStorage.getItem('ipPath');
-    let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:18860/getAccompaniment `)
-    xhr.setRequestHeader('Content-Type', 'application/json')
-    xhr.send(JSON.stringify(
-      {
-        "key": "Cmajor",
-        "tempo": "64"
-      }))
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('accompaniment',`http://${baseUrl}:${res.fileURL}`)
-        }
-      }
-    }
-  },
   render: function () {
-    var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying, json,
-      markup, rawKey, rawTime, ref,
+    var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying, json, markup, rawKey, rawTime, ref,
       sectionsPerLine, song, useMarkup, volume, songName, songLyrics, songSetValue;
     ref = this.state,
       song = ref.song,
@@ -590,39 +498,17 @@ App = React.createClass({
       songLyrics = ref.songLyrics,
       songSetValue = ref.songSetValue;
     return <div>
-      <div>
-        {this.state.isDialog ? <Modal fullscreen={true} show={this.state.isDialog} onHide={this.handleClose}>
-          <iframe src="lib/waveform-playlist/web-audio-editor.html" height="500px" width="100%">
-          </iframe>
-          <div>
-            <Button variant="secondary" onClick={this.handleClose}>
-              关闭
-            </Button>
-            <Button variant="primary" onClick={this.handleClose}>
-              保存
-            </Button>
-          </div>
-        </Modal> : ''}
-      </div>
       <div className="md-set form-group row">
-        <Input type="text" label="歌曲名" placeholder="输入歌曲名" value={songName}></Input>
-        <Input type="text" placeholder="歌词主题" label="歌词主题"
-          onChange={this.onChangeLyric} value={songLyrics} />
-        <div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeLyric}>作词</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeSong}>作曲</Button >
-        </div>
-        <div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>AI人声</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.onClick}>刷新</Button >
-          {
-            isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停曲谱</Button >
-              : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>播放曲谱</Button >
-          }
-          <Button type="button" className="btn btn-outline-primary" onClick={
-            this.onChangeDialog}>音频调整</Button >
-        </div>
+        <span>歌曲名</span><input type="text" className="form-control" value={songName}></input>
+        <span>歌曲主题</span><input type="text" className="form-control" placeholder="请输入歌曲主题" value={songLyrics}
+          onChang={this.onChangeLyric}
+        ></input>
+        <button type="button" className="btn btn-outline-primary" onClick={this.btnChangeLyric}>作词</button>
+        <button type="button" className="btn btn-outline-primary" onClick={this.btnChangeSong}>作曲</button>
+        <button type="button" className="btn btn-outline-primary">AI人声</button>
+        <button type="button" className="btn btn-outline-primary">AI伴奏</button>
+        <button type="button" className="btn btn-outline-primary" onClick={this.onClick}>刷新</button>
+        <button type="button" className="btn btn-outline-primary">播放</button>
       </div>
       <Grid fluid="true">
         <Col md="7">
@@ -637,20 +523,17 @@ App = React.createClass({
             </DropdownButton>
             <div>
               <input type="checkbox" label="JSON" onChange={this.toggleInputFormat}
-                checked={!useMarkup} />JSON</div>
+                checked={!useMarkup} /></div>
           </div>
-          <div>
-            {
-              useMarkup ?
-                <Input type="textarea" groupClassName="markup-input" rows='12' label="Markup" onChange={this.changeMarkup} value={markup} />
-                : <Input type="textarea" groupClassName="markup-input" rows='12' label="Markup" onChange={this.changeJSON} value={json} />
-            }
-          </div>
+          {
+            useMarkup ? <Input type="textarea" groupClassName="markup-input" rows='10' label="Markup" onChange={this.changeMarkup} value={markup} />
+              : <Input type="textarea" groupClassName="markup-input" rows='10' label="Markup" onChange={this.changeJSON} value={json} />
+          }
         </Col>
         <Col md="5">
           <PanelGroup defaultActiveKey="1" accordion={true} >
             <Panel header="歌词配置,修改歌词用enter换行隔开" eventKey="1">
-              <Input type="textarea" placeholder="歌词" rows='10'
+              <Input type="textarea" placeholder="歌词" rows='10' label="Markup"
                 onChange={this.onChangeSetSong} value={songSetValue}
                 bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
               />
@@ -671,7 +554,7 @@ App = React.createClass({
                 value={sectionsPerLine} onChange={this.onChangeSPL}
               />
             </Panel>
-            <Panel header="节拍设置" eventKey="3">
+            <Panel header="播放设置" eventKey="3">
               <div className="form-group">
                 <label className="control-label">Volume</label>
                 <Slider min={0}
@@ -704,16 +587,6 @@ App = React.createClass({
                 </SplitButton>
               </div>
             </Panel>
-            <Panel header="音频设置" eventKey="4">
-              <span>需点击生成人声或伴奏此处才会有音频</span>
-              <div className="form-group">
-              {/* <audio src="http://106.87.71.19:18860:/fileUpdate/2023-07-10-15-03-50/mp3_1436af35-f147-4bce-a5e0-6fbddb543de5.mp3" id="videoLeft"  ref="videoLeft" controls="" name="media2" autoplay>
-             </audio> */}
-                <audio controls autoplay>
-                  <source src="../audio_file.mp3"/>
-                </audio>
-              </div>
-            </Panel>
           </PanelGroup>
         </Col>
       </Grid>
@@ -723,10 +596,197 @@ App = React.createClass({
           sectionsPerLine={sectionsPerLine}
           alignSections={alignSections}
           highlight={isPlaying}
-        />
+        ></Jianpu>
       </Panel>
     </div>
+    React.createElement("div", {},),
+      React.createElement("div", null,
+        React.createElement('div', {
+          "className": "md-set",
+        },
+          React.createElement(Input, {
+            "type": "text",
+            "label": "歌曲名",
+            "value": songName,
+            "placeholder": "请输入歌曲名",
+          }),
+          React.createElement(Input, {
+            "type": "text",
+            "label": "歌曲主题",
+            "value": songLyrics,
+            "onChange": this.onChangeLyric,
+            "placeholder": "请输入歌曲主题",
+          }), React.createElement('button', {
+            "className": "btn-col",
+            "onClick": this.btnChangeLyric
+          }, "作词"), React.createElement('button', {
+            "className": "btn-col",
+            "onClick": this.btnChangeSong
+          }, "作曲"),
+          React.createElement('button', {
+            "href": "#",
+            "className": "btn-col",
+            "onClick": this.onClick
+          }, "刷新"),
+          (isPlaying ? React.createElement('button', {
+            "href": "#",
+            "className": "btn-col",
+            "onClick": this.stopPlaying
+          }, "暂停") :
+            React.createElement('button', {
+              "href": "#",
+              "className": "btn-col",
+              "onClick": this.playNotes.bind(this, song.melody)
+            }, "播放")),
+        ),
+
+        React.createElement(Grid, {
+          "fluid": true
+        },
+          React.createElement(Row, null, React.createElement(Col, {
+            "md": 7,
+          },
+            React.createElement('div', {
+              className: 'mark-set',
+            }, React.createElement(DropdownButton, {
+              "title": song.name,
+              "onSelect": this.selectSong
+            }, (function () {
+              var j, len, results;
+              results = [];
+              for (i = j = 0, len = exampleSongs.length; j < len; i = ++j) {
+                exampleSong = exampleSongs[i];
+                results.push(React.createElement(MenuItem, {
+                  "key": i,
+                  "eventKey": i
+                }, exampleSong.name));
+              }
+              return results;
+            })()), React.createElement(Input, {
+              "type": "checkbox",
+              "label": "JSON",
+              "onChange": this.toggleInputFormat,
+              "checked": !useMarkup
+            }),),
+            (useMarkup ? React.createElement(Input, {
+              "groupClassName": "markup-input",
+              "type": "textarea",
+              "label": "Markup",
+              "onChange": this.changeMarkup,
+              "value": markup,
+              "rows": 10
+            }) : React.createElement(Input, {
+              "groupClassName": "markup-input",
+              "type": "textarea",
+              "label": "JSON",
+              "onChange": this.changeJSON,
+              "value": json,
+              "rows": 10
+            }))), React.createElement(Col, {
+              "md": 5
+            }, React.createElement(PanelGroup, {
+              "defaultActiveKey": "1",
+              "accordion": true
+            },
+              React.createElement(Panel, {
+                "header": "歌词配置,修改歌词用enter换行隔开",
+                "eventKey": "1"
+              }, React.createElement(Input, {
+                "type": "textarea",
+                "label": "",
+                "placeholder": "歌词",
+                "rows": 10,
+                "value": songSetValue,
+                "onChange": this.onChangeSetSong,
+                "bsStyle": (this.parseKey(rawKey) == null ? "error" : void 0)
+              })),
+              React.createElement(Panel, {
+                "header": "普通设置",
+                "eventKey": "2"
+              }, React.createElement(Input, {
+                "type": "text",
+                "label": "Key",
+                "placeholder": "1=C",
+                "value": rawKey,
+                "onChange": this.onChangeKey,
+                "bsStyle": (this.parseKey(rawKey) == null ? "error" : void 0)
+              }), React.createElement(Input, {
+                "type": "text",
+                "label": "Time",
+                "placeholder": "4/4",
+                "value": rawTime,
+                "onChange": this.onChangeTime,
+                "bsStyle": (!this.validateTime(rawTime) ? "error" : void 0)
+              }), React.createElement(Input, {
+                "type": "checkbox",
+                "label": "Align Sections",
+                "onChange": this.onChangeAlign,
+                "checked": alignSections
+              }), React.createElement(Input, {
+                "type": "number",
+                "label": "Sections per line",
+                "placeholder": "4",
+                "value": sectionsPerLine,
+                "onChange": this.onChangeSPL
+              })),
+              React.createElement(Panel, {
+                "header": "播放设置",
+                "eventKey": "3"
+              }, React.createElement("div", {
+                "className": "form-group"
+              },
+                React.createElement("label", {
+                  "className": "control-label"
+                }, "Volume"), React.createElement(Slider, {
+                  "min": 0,
+                  "max": 100,
+                  "step": 1,
+                  "value": volume,
+                  "onSlide": this.onChangeVolume,
+                  "toolTip": true,
+                  "formatter": (function (v) {
+                    return v + "%";
+                  })
+                })), React.createElement(Input, {
+                  "type": "number",
+                  "label": "BPM",
+                  "placeholder": "120",
+                  "value": bpm,
+                  "onChange": this.onChangeBPM
+                }), React.createElement("div", {
+                  "className": "form-group"
+                }, React.createElement("label", {
+                  "className": "control-label"
+                }, "Instrument"), React.createElement(SplitButton, {
+                  "title": instrument,
+                  "onSelect": this.onSelectInstrument,
+                  "onClick": this.onClickInstrument
+                }, (function () {
+                  var j, len, ref1, results;
+                  ref1 = this.instruments;
+                  results = [];
+                  for (j = 0, len = ref1.length; j < len; j++) {
+                    instr = ref1[j];
+                    results.push(React.createElement(MenuItem, {
+                      "key": instr,
+                      "eventKey": instr
+                    }, instr));
+                  }
+                  return results;
+                }).call(this)))))))),
+
+        React.createElement(Panel, {
+          "header": "Preview"
+        }, React.createElement(Jianpu, {
+          "song": song,
+          "sectionsPerLine": sectionsPerLine,
+          "alignSections": alignSections,
+          "highlight": isPlaying
+        })));
+
   }
 });
+
+// React.render(React.createElement(App, null), document.getElementById("mycontainer"));
 React.render(<App name="app" />, document.getElementById("mycontainer"));
 getIp();
