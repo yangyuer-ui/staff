@@ -240,6 +240,12 @@ App = React.createClass({
       movedInIndex: -1,
       clickBlockItem: {},//当前点击积木属性
       noteMusicSetDialog: false,//曲谱设置弹窗
+      chord: [
+        {
+          duration: '',
+          chord: '和弦',
+        }
+      ],//和弦积木集合
     };
   },
   playNotes: function (notes) {
@@ -748,6 +754,7 @@ App = React.createClass({
             <div className="drag-box">
               {song.melody.map((item, index) => {
                 return (
+
                   <div
                     key={item.id}
                     draggable={true}
@@ -757,14 +764,38 @@ App = React.createClass({
                     className={item.pitch.base % 2 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
                     onClick={e => this.clickDragItem(item)}
                   >
-                    <span>{item.lyrics.content}</span>
+                    <div className="drag-item-delete">
+                      <div className="drag-item-delete-btn">x</div>
+                    </div>
+                    <div>
+                      <span>{item.lyrics.content}</span>
+                   </div>
                   </div>
                 );
               })}
               <div className="drag-box-add" title="点击添加音块积木"
+                onClick={this.addDragBox}>
+                <span>+</span>
+              </div>
+            </div>
+            <div className="drag-box">
+              {this.state.chord.map((item, index) => {
+                return (
+                  <div
+                    key={item.id}
+                    draggable={true}
+                    onDragStart={e => this.dragStart(index, e)}
+                    className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
+                    onClick={e => this.clickDragItem(item)}
+                  >
+                    <span>{item.chord}</span>
+                  </div>
+                );
+              })}
+              <div className="drag-box-add drag-box-add-chord" title="点击添加和弦"
                 onClick={this.addDragBox}
               >
-               <span>+</span>
+                <span>+</span>
               </div>
             </div>
           </Panel>
@@ -774,6 +805,7 @@ App = React.createClass({
             <Input type="text" label="音高" value={this.state.clickBlockItem.pitch ? this.state.clickBlockItem.pitch.base : ''} />
             <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''} onChange={e => this.clickBlockItemChange('content', val)} />
             <Input type="text" label="时长" value={this.state.clickBlockItem.duration} onChange={e => this.clickBlockItemChange('duration', val)} />
+
           </Panel>
         </Col>
       </Grid>
