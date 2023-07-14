@@ -183,30 +183,6 @@ function getIp() {
     }
   }
 }
-// 定义一个递归函数，将JSON转换为Markup字符串
-function jsonToMarkup(json) {
-  if (typeof json === 'string') {
-    return json;
-  } else if (Array.isArray(json)) {
-    return json.map((item, index) =>
-      jsonToMarkup(item));
-  } else if (typeof json === 'object') {
-    return Object.keys(json).map((key, index) => (
-      jsonToMarkup(json[key])
-    ));
-  } else {
-    return JSON.stringify(json);
-  }
-}
-
-// 在React组件中使用该函数将JSON数组转换为Markup字符串
-function JsonArrayToMarkup(jsonArray) {
-  const markup = jsonArray.map((json, index) => (
-    jsonToMarkup(json)
-  ));
-
-  return markup;
-}
 
 rowyourboat = "M1.   1.|  1   2    3.|   3  2   3    4|  5--|\nT              -             -        -\nLRow, row, row your boat, gently down the stream.\nM<1.>5.| 3.     1.| 5   4 3  2|1--|\nT                       -    -\nC                   S   s \nL Ha ha, fooled ya, I'm a submarine.";
 
@@ -246,8 +222,6 @@ App = React.createClass({
   getInitialState: function () {
     return {
       alignSections: true,
-      markup: exampleSongs[0].markup,
-      json: JSON.stringify(exampleSongs[0].melody, null, 2),
       rawTime: "3/4",
       rawKey: "1=C",
       sectionsPerLine: 4,
@@ -256,8 +230,6 @@ App = React.createClass({
       volume: 30,
       bpm: 120,
       instrument: "piano",
-      useMarkup: true,
-      songName: "",//歌曲名称
       songLyrics: '',//歌曲主题
       songSetValue: '',//歌词设置
       isDialog: false,
@@ -266,9 +238,8 @@ App = React.createClass({
       movedPicIndex: -1,
       //  移入的区域的index
       movedInIndex: -1,
-      clickBlockItem: {
-
-      }
+      clickBlockItem: {},//当前点击积木属性
+      noteMusicSetDialog: false,//曲谱设置弹窗
     };
   },
   playNotes: function (notes) {
@@ -322,19 +293,7 @@ App = React.createClass({
   stopPlaying: function () {
     return this.shouldStop = true;
   },
-  onClick: function (e) {
-    var json, markup, melody, ref, song, useMarkup;
-    ref = this.state, song = ref.song, markup = ref.markup, useMarkup = ref.useMarkup, json = ref.json;
-    if (useMarkup) {
-      melody = parse(markup);
-    } else {
-      melody = JSON.parse(json);
-    }
-    song.melody = melody;
-    return this.setState({
-      song: song
-    });
-  },
+
   onChangeAlign: function (e) {
     return this.setState({
       alignSections: e.target.checked
@@ -428,33 +387,6 @@ App = React.createClass({
     Synth.setVolume(volume / 100);
     return Synth.play(instrument, "C", 4, crotchetDuration * 2);
   },
-  selectSong: function (eventKey) {
-    return this.setState({
-      song: exampleSongs[eventKey],
-      markup: exampleSongs[eventKey].markup,
-      json: JSON.stringify(exampleSongs[eventKey].melody, null, 2)
-    });
-  },
-  changeMarkup: function (e) {
-    return this.setState({
-      markup: e.target.value
-    });
-  },
-  changeJSON: function (e) {
-    return this.setState({
-      json: e.target.value
-    });
-  },
-  toggleInputFormat: function () {
-    if (this.state.useMarkup) {
-      this.setState({
-        json: JSON.stringify(parse(this.state.markup), null, 2)
-      });
-    }
-    return this.setState({
-      useMarkup: !this.state.useMarkup
-    });
-  },
   onChangeLyric: function (e) {
     var songLyrics;
     songLyrics = e.target.value;
@@ -472,10 +404,20 @@ App = React.createClass({
       isDialog: true
     });
   },
-  handleClose: function (e) {
-    this.setState({
-      isDialog: false
-    });
+  handleClose: function (type) {
+    if (type === 'noteMusic') {
+      this.setState({
+        noteMusicSetDialog: false
+      });
+    } else if (type === 'aiCreate') {
+      this.setState({
+        isAIcrateDialog: false
+      });
+    } else {
+      this.setState({
+        isDialog: false
+      });
+    }
   },
   // 作词
   btnChangeLyric: function () {
@@ -517,11 +459,7 @@ App = React.createClass({
           let res = JSON.parse(xhr.response);
           var jsonData = res.jsonData;
           exampleSongs = [jsonData];
-          const markup1 = JsonArrayToMarkup(exampleSongs[0].melody);
-          console.log(markup1);
           that.setState({
-            markup: exampleSongs[0].markup,
-            json: JSON.stringify(exampleSongs[0].melody, null, 2),
             song: exampleSongs[0],
           });
         }
@@ -536,7 +474,7 @@ App = React.createClass({
     xhr.open('POST', `http://${baseUrl}:18860/singer`)
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.send(JSON.stringify({
-      text: JSON.parse(this.state.json),
+      text: this.state.song.melody,
       info: {
         "key": this.state.rawKey,
         "time": this.state.rawTime,
@@ -556,7 +494,6 @@ App = React.createClass({
   },
   // 生成伴奏
   getAccompaniment: function () {
-    let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://${baseUrl}:18860/getAccompaniment `)
@@ -576,6 +513,7 @@ App = React.createClass({
       }
     }
   },
+  // ai创作
   aiCreate: function () {
     this.setState({
       isAIcrateDialog: true
@@ -600,24 +538,26 @@ App = React.createClass({
     e.preventDefault();
     this.movedInIndex = index;
     const picData = this.swapPic(this.movedPicIndex, this.movedInIndex);
+    this.state.song.melody = picData;
     this.setState({
-      pic: picData
+      song: this.state.song
     });
   },
   /**
    * 互换图片
    */
   swapPic: function (fromIndex, toIndex) {
-    let picData = [...this.state.pic];
+    let picData = [...this.state.song.melody];
     [picData[fromIndex], picData[toIndex]] = [picData[toIndex], picData[fromIndex]];
     return picData;
   },
-
+  // 点击积木块
   clickDragItem: function (item) {
     this.setState({
       clickBlockItem: item
     })
   },
+  // 新增积木块
   addDragBox: function () {
     exampleSongs[0].melody.push({
       duration: 12,
@@ -633,10 +573,14 @@ App = React.createClass({
       song: this.state.song
     })
   },
+  /**
+   * 积木块属性变动
+   * @param {*属性类型} type 
+   * @param {*值} val 
+   */
   clickBlockItemChange: function (type, val) {
     if (type === 'content')
       this.state.clickBlockItem.content = val
-    // this.state.clickBlockItem.duration=val
     this.setState({
       clickBlockItem: this.state.clickBlockItem
     })
@@ -644,15 +588,17 @@ App = React.createClass({
       song: this.state.song
     })
   },
+  noteMusicSet: function () {
+    this.setState({
+      noteMusicSetDialog: true
+    })
+  },
   render: function () {
-    var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying, json,
-      markup, rawKey, rawTime, ref,
-      sectionsPerLine, song, useMarkup, volume, songName, songLyrics, songSetValue;
+    var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying,
+      rawKey, rawTime, ref,
+      sectionsPerLine, song, volume, songLyrics, songSetValue;
     ref = this.state,
       song = ref.song,
-      markup = ref.markup,
-      json = ref.json,
-      useMarkup = ref.useMarkup,
       alignSections = ref.alignSections,
       rawTime = ref.rawTime,
       sectionsPerLine = ref.sectionsPerLine,
@@ -661,37 +607,52 @@ App = React.createClass({
       bpm = ref.bpm,
       instrument = ref.instrument,
       rawKey = ref.rawKey,
-      songName = ref.songName,
       songLyrics = ref.songLyrics,
       songSetValue = ref.songSetValue;
     return <div>
       {/* mp3音频处理 */}
       <div>
-        {this.state.isDialog ? <Modal fullscreen={true} show={this.state.isDialog} onHide={this.handleClose}>
+        {this.state.isDialog ? <Modal fullscreen={true} show={this.state.isDialog} onHide={e => this.handleClose('mp3')}>
           <iframe src="lib/waveform-playlist/web-audio-editor.html" height="500px" width="100%">
           </iframe>
           <div>
-            <Button variant="secondary" onClick={this.handleClose}>
+            <Button variant="secondary" onClick={e => this.handleClose('mp3')}>
               关闭
             </Button>
-            <Button variant="primary" onClick={this.handleClose}>
+            <Button variant="primary" onClick={e => this.handleClose('mp3')}>
               保存
             </Button>
           </div>
         </Modal> : ''}
       </div>
-      {/* 歌曲配置处理 */}
+      {/* ai创作 */}
       <div>
         {this.state.isAIcrateDialog ?
           <Modal>
+            <Input type="text" placeholder="歌词主题" label="歌词主题"
+              onChange={this.onChangeLyric} value={songLyrics} />
+            <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeLyric}>作词</Button >
+            <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeSong}>作曲</Button >
+            <Panel header="歌词配置,修改歌词用enter换行隔开" >
+              <Input type="textarea" placeholder="歌词" rows='10'
+                onChange={this.onChangeSetSong} value={songSetValue}
+                bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
+              />
+            </Panel>
+            <Button variant="secondary" onClick={e => this.handleClose('aiCreate')}>
+              关闭
+            </Button>
+            <Button variant="primary" onClick={e => this.handleClose('aiCreate')}>
+              保存
+            </Button>
+          </Modal> : ''}
+      </div>
+      {/* 曲谱设置 */}
+      <div>
+        {this.state.noteMusicSetDialog ?
+          <Modal>
             <PanelGroup defaultActiveKey="1" accordion={true} >
-              <Panel header="歌词配置,修改歌词用enter换行隔开" eventKey="1">
-                <Input type="textarea" placeholder="歌词" rows='10'
-                  onChange={this.onChangeSetSong} value={songSetValue}
-                  bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
-                />
-              </Panel>
-              <Panel header="普通设置" eventKey="2">
+              <Panel header="普通设置" eventKey="1">
                 <Input type="text" placeholder="1=C" label="Key"
                   onChange={this.onChangeKey} value={rawKey}
                   bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
@@ -707,7 +668,7 @@ App = React.createClass({
                   value={sectionsPerLine} onChange={this.onChangeSPL}
                 />
               </Panel>
-              <Panel header="节拍设置" eventKey="3">
+              <Panel header="节拍设置" eventKey="2">
                 <div className="form-group">
                   <label className="control-label">Volume</label>
                   <Slider min={0}
@@ -740,7 +701,7 @@ App = React.createClass({
                   </SplitButton>
                 </div>
               </Panel>
-              <Panel header="音频设置" eventKey="4">
+              <Panel header="音频设置" eventKey="3">
                 <span>需点击生成人声或伴奏此处才会有音频</span>
                 <div className="form-group">
                   <audio
@@ -755,74 +716,58 @@ App = React.createClass({
                 </div>
               </Panel>
             </PanelGroup>
+            <Button variant="secondary" onClick={e => this.handleClose('noteMusic')}>
+              关闭
+            </Button>
+            <Button variant="primary" onClick={e => this.handleClose('noteMusic')}>
+              保存
+            </Button>
           </Modal> : ''}
       </div>
       <div className="md-set form-group row">
-        <Input type="text" label="歌曲名" placeholder="输入歌曲名" value={songName}></Input>
-        <Input type="text" placeholder="歌词主题" label="歌词主题"
-          onChange={this.onChangeLyric} value={songLyrics} />
         <div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeLyric}>作词</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeSong}>作曲</Button >
+          {
+            isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
+              : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
+          }
           <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
+
         </div>
         <div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>AI人声</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.onClick}>刷新</Button >
-
-          {
-            isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停曲谱</Button >
-              : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>播放曲谱</Button >
-          }
-          <Button type="button" className="btn btn-outline-primary" onClick={
-            this.onChangeDialog}>音频调整</Button >
+          {/* <Button type="button" className="btn btn-outline-primary" onClick={this.onClick}>刷新</Button > */}
+          <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>下载曲谱</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
         </div>
       </div>
       <Grid fluid="true">
         <Col md="10">
-          <div className="drag-box">
-            {song.melody.map((item, index) => {
-              return (
-                <div
-                  key={item.id}
-                  draggable={true}
-                  onDragStart={e => this.dragStart(index, e)}
-                  onDragOver={this.allowDrop}
-                  onDrop={e => this.drop(index, e)}
-                  className={item.pitch.base % 2 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
-                  onClick={e => this.clickDragItem(item)}
-                >
-                  <span>{item.lyrics.content}</span>
-                </div>
-              );
-            })}
-            <div className="drag-box-add" title="点击添加音块积木"
-              onClick={this.addDragBox}
-            >
-              <span>+</span>
-            </div>
-          </div>
-          <div className="mark-set">
-            <DropdownButton onSelect={this.selectSong} title={song.name}>
-              {exampleSongs.map((value, index) => {
+          <Panel header="音乐积木编辑" >
+            <div className="drag-box">
+              {song.melody.map((item, index) => {
                 return (
-                  <MenuItem key={index} eventKey={index}> {value.name}
-                  </MenuItem>
-                )
+                  <div
+                    key={item.id}
+                    draggable={true}
+                    onDragStart={e => this.dragStart(index, e)}
+                    onDragOver={this.allowDrop}
+                    onDrop={e => this.drop(index, e)}
+                    className={item.pitch.base % 2 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
+                    onClick={e => this.clickDragItem(item)}
+                  >
+                    <span>{item.lyrics.content}</span>
+                  </div>
+                );
               })}
-            </DropdownButton>
-            <div>
-              <input type="checkbox" label="JSON" onChange={this.toggleInputFormat}
-                checked={!useMarkup} />JSON</div>
-          </div>
-          <div>
-            {
-              useMarkup ?
-                <Input type="textarea" groupClassName="markup-input" rows='12' label="Markup" onChange={this.changeMarkup} value={markup} />
-                : <Input type="textarea" groupClassName="markup-input" rows='12' label="Markup" onChange={this.changeJSON} value={json} />
-            }
-          </div>
+              <div className="drag-box-add" title="点击添加音块积木"
+                onClick={this.addDragBox}
+              >
+               <span>+</span>
+              </div>
+            </div>
+          </Panel>
         </Col>
         <Col md="2">
           <Panel header="属性" >
