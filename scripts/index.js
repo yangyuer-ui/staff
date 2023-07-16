@@ -743,7 +743,6 @@ App = React.createClass({
         <div>
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
-          {/* <Button type="button" className="btn btn-outline-primary" onClick={this.onClick}>刷新</Button > */}
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>下载曲谱</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
         </div>
@@ -801,11 +800,15 @@ App = React.createClass({
           </Panel>
         </Col>
         <Col md="2">
-          <Panel header="属性" >
+          <div>
+            {
+              
+            }
+          </div>
+          <Panel header="歌词属性" >
             <Input type="text" label="音高" value={this.state.clickBlockItem.pitch ? this.state.clickBlockItem.pitch.base : ''} />
             <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''} onChange={e => this.clickBlockItemChange('content', val)} />
             <Input type="text" label="时长" value={this.state.clickBlockItem.duration} onChange={e => this.clickBlockItemChange('duration', val)} />
-
           </Panel>
         </Col>
       </Grid>
