@@ -746,7 +746,6 @@ App = React.createClass({
         <div>
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
-          {/* <Button type="button" className="btn btn-outline-primary" onClick={this.onClick}>刷新</Button > */}
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>下载曲谱</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
         </div>
