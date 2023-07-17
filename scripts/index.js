@@ -1,7 +1,7 @@
 
 
-var App, exampleSongs, parse, rowyourboat, susanna,
-  modulo = function (a, b) { return (+a % (b = +b) + b) % b; };
+var App, exampleSongs, parse, rowyourboat, susanna, durationList, noteWS
+modulo = function (a, b) { return (+a % (b = +b) + b) % b; };
 
 parse = function (m) {
   var base, deli, handleLastline, i, isNum, j, k, l, lastLine, len, len1, len2, line, lines, lyricsDelims, noteDelims, notes, o, ref, ref1, ref2, ref3;
@@ -170,7 +170,87 @@ parse = function (m) {
     "s": "slur end"
   }
 });
-// 获取ip
+
+rowyourboat = "M1.   1.|  1   2    3.|   3  2   3    4|  5--|\nT              -             -        -\nLRow, row, row your boat, gently down the stream.\nM<1.>5.| 3.     1.| 5   4 3  2|1--|\nT                       -    -\nC                   S   s \nL Ha ha, fooled ya, I'm a submarine.";
+
+susanna = "M00001  2|3    5    5.6 5 3  1.   2  3  3  2  1  2     1   2|\nT   -=  = =    =    = # = =  =    #  =  =  =  =  -     =   =\nL    Oh I come from A labama with my banjo on my knee. And I'm\nC       S s                                                S\nM3    5   5.  6 531. 2  3    3    2   2  1|\nT=    =   =   # ===  #  =    =    =   =  \nLgoin' to Louisia na My true love for to see.\nCs              Ss";
+
+exampleSongs = [
+  {
+    name: "Row your boat",
+    markup: '',
+    melody: parse(rowyourboat),
+    time: {
+      upper: 3,
+      lower: 4
+    },
+    key: {
+      left: "1",
+      right: "C"
+    }
+  }, {
+    name: "Oh Susanna",
+    markup: '',
+    melody: parse(susanna),
+    time: {
+      upper: 4,
+      lower: 4
+    },
+    key: {
+      left: "1",
+      right: "C"
+    }
+  }
+];
+// 时长下拉数据
+durationList = [
+  {
+    name: '二全音符',
+    value: 64
+  },
+  {
+    name: '全附点音符',
+    value: 48
+  },
+  {
+    name: '全音符',
+    value: 32
+  },
+  {
+    name: '二分附点音符',
+    value: 24
+  },
+  {
+    name: '二分音符',
+    value: 16
+  },
+  {
+    name: '四分附点音符',
+    value: 12
+  },
+  {
+    name: '四分音符',
+    value: 8
+  },
+  {
+    name: '八分音符',
+    value: 4
+  },
+  {
+    name: ' 八分附点音符',
+    value: 6
+  },
+  {
+    name: '十六分音符',
+    value: 2
+  },
+  {
+    name: '三十二分音符',
+    value: 1
+  },
+]
+
+// 获取接口真实ip
 function getIp() {
   let xhr = new XMLHttpRequest()
   xhr.open('GET', `http://www.suihanmusic.com:5001`, true)
@@ -184,37 +264,24 @@ function getIp() {
   }
 }
 
-rowyourboat = "M1.   1.|  1   2    3.|   3  2   3    4|  5--|\nT              -             -        -\nLRow, row, row your boat, gently down the stream.\nM<1.>5.| 3.     1.| 5   4 3  2|1--|\nT                       -    -\nC                   S   s \nL Ha ha, fooled ya, I'm a submarine.";
+//将音高转换为字符
+function getNoteName(midiNote) {
+  const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const octave = Math.floor(midiNote / 12) - 1;
+  const noteIndex = midiNote % 12;
+  return noteNames[noteIndex] + octave;
+}
 
-susanna = "M00001  2|3    5    5.6 5 3  1.   2  3  3  2  1  2     1   2|\nT   -=  = =    =    = # = =  =    #  =  =  =  =  -     =   =\nL    Oh I come from A labama with my banjo on my knee. And I'm\nC       S s                                                S\nM3    5   5.  6 531. 2  3    3    2   2  1|\nT=    =   =   # ===  #  =    =    =   =  \nLgoin' to Louisia na My true love for to see.\nCs              Ss";
+//将字符转换为音高
+function getMidiNoteFromName(noteName) {
+  const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const note = noteName.slice(0, -1);
+  const octave = parseInt(noteName.slice(-1));
+  const noteIndex = noteNames.indexOf(note);
+  return (octave + 1) * 12 + noteIndex;
+}
 
-exampleSongs = [
-  {
-    name: "Row your boat",
-    markup: rowyourboat,
-    melody: parse(rowyourboat),
-    time: {
-      upper: 3,
-      lower: 4
-    },
-    key: {
-      left: "1",
-      right: "C"
-    }
-  }, {
-    name: "Oh Susanna",
-    markup: susanna,
-    melody: parse(susanna),
-    time: {
-      upper: 4,
-      lower: 4
-    },
-    key: {
-      left: "1",
-      right: "C"
-    }
-  }
-];
+noteWS = 'ws://localhost:5001/playState';
 
 App = React.createClass({
   displayName: "App",
@@ -239,6 +306,7 @@ App = React.createClass({
       //  移入的区域的index
       movedInIndex: -1,
       clickBlockItem: {},//当前点击积木属性
+      clickChordItem: {},//当前点击和弦属性
       noteMusicSetDialog: false,//曲谱设置弹窗
       chord: [
         {
@@ -246,6 +314,8 @@ App = React.createClass({
           chord: '和弦',
         }
       ],//和弦积木集合
+      clickBlockType: '',//当前点击色块的类型
+      pitchBase: ''
     };
   },
   playNotes: function (notes) {
@@ -557,35 +627,74 @@ App = React.createClass({
     return picData;
   },
   // 点击积木块
-  clickDragItem: function (item) {
+  clickDragItem: function (item, type) {
     this.setState({
-      clickBlockItem: item
+      clickBlockType: type
     })
+    if (type === 'lyric') {
+      // 将音高转换成音符
+      let pt = JSON.parse(JSON.stringify(item.pitch))
+      this.setState({
+        pitchBase: getNoteName(pt.base)
+      });
+      // 歌词 
+      this.setState({
+        clickBlockItem: item
+      });
+
+    } else {
+      // 歌词   
+      this.setState({
+        clickChordItem: item
+      })
+    }
+
   },
   // 新增积木块
-  addDragBox: function () {
-    exampleSongs[0].melody.push({
-      duration: 12,
-      lyrics: {
-        content: '歌词', exists:
-          true, hyphen: true
-      },
-      options: {},
-      pitch:
-        { base: 60, accidental: 0 }
-    });
-    this.setState({
-      song: this.state.song
-    })
+  addDragBox: function (type) {
+    if (type === 'lyric') {
+      exampleSongs[0].melody.push({
+        duration: 8,
+        lyrics: {
+          content: '歌词', exists:
+            true, hyphen: true
+        },
+        options: {},
+        pitch:
+          { base: 60, accidental: 0 }
+      });
+      this.setState({
+        song: this.state.song
+      })
+    }
+    else {
+      // 如果time为3/4和弦duration为24；
+      // 如果time为4/4和弦duration为32；
+      this.state.chord.push({
+        duration: this.state.rawTime === '3/4' ? 24 : 32,
+        chord: '',
+      });
+      this.setState({
+        chord: this.state.chord
+      })
+    }
   },
   /**
    * 积木块属性变动
    * @param {*属性类型} type 
    * @param {*值} val 
    */
-  clickBlockItemChange: function (type, val) {
+  clickBlockItemChange: function (type, e) {
     if (type === 'content')
-      this.state.clickBlockItem.content = val
+      this.state.clickBlockItem.lyrics.content = e.target.value
+    else if (type === 'pitchBase') {
+      this.state.clickBlockItem.pitch.base = getMidiNoteFromName(e.target.value);
+      this.setState({
+        pitchBase: e.target.value
+      });
+    } else {
+      this.state.clickBlockItem.duration = e.target.value * 1
+    }
     this.setState({
       clickBlockItem: this.state.clickBlockItem
     })
@@ -593,11 +702,45 @@ App = React.createClass({
       song: this.state.song
     })
   },
+  /**
+   * 和弦属性变动
+   * @param {*属性类型} type 
+   * @param {*值} val 
+   */
+  clickChordItemChange: function (type, e) {
+    if (type === 'chord')
+      this.state.clickChordItem.chord = e.target.value;
+    else {
+      this.state.clickChordItem.duration = e.target.value;
+    }
+    this.setState({
+      clickChordItem: this.state.clickChordItem
+    })
+  },
+  // 打开曲谱设置
   noteMusicSet: function () {
     this.setState({
       noteMusicSetDialog: true
     })
   },
+
+  // 删除积木块
+  deleteBlockItem: function (index, type) {
+    if (type === 'lyrics') {
+      // 歌词删除
+      exampleSongs[0].melody.splice(index, 1);
+      this.setState({
+        song: this.state.song
+      })
+    } else {
+      // 和弦删除
+      this.state.chord.splice(index, 1);
+      this.setState({
+        chord: this.state.chord
+      })
+    }
+  },
+
   render: function () {
     var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying,
       rawKey, rawTime, ref,
@@ -614,6 +757,9 @@ App = React.createClass({
       rawKey = ref.rawKey,
       songLyrics = ref.songLyrics,
       songSetValue = ref.songSetValue;
+    const colorRed = {
+      color: 'red'
+    }
     return <div>
       {/* mp3音频处理 */}
       <div>
@@ -623,9 +769,6 @@ App = React.createClass({
           <div>
             <Button variant="secondary" onClick={e => this.handleClose('mp3')}>
               关闭
-            </Button>
-            <Button variant="primary" onClick={e => this.handleClose('mp3')}>
-              保存
             </Button>
           </div>
         </Modal> : ''}
@@ -644,11 +787,12 @@ App = React.createClass({
                 bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
               />
             </Panel>
+            <p>  <span style={colorRed}>*</span> <span>更新到积木后，当前歌词会从该容器中删除</span></p>
             <Button variant="secondary" onClick={e => this.handleClose('aiCreate')}>
               关闭
             </Button>
             <Button variant="primary" onClick={e => this.handleClose('aiCreate')}>
-              保存
+              更新到积木
             </Button>
           </Modal> : ''}
       </div>
@@ -751,8 +895,8 @@ App = React.createClass({
         </div>
       </div>
       <Grid fluid="true">
-        <Col md="10">
-          <Panel header="音乐积木编辑" >
+        <Col md="9">
+          <Panel header="音乐积木编辑" className='panal-block'>
             <div className="drag-box">
               {song.melody.map((item, index) => {
                 return (
@@ -764,10 +908,10 @@ App = React.createClass({
                     onDragOver={this.allowDrop}
                     onDrop={e => this.drop(index, e)}
                     className={item.pitch.base % 2 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
-                    onClick={e => this.clickDragItem(item)}
+                    onClick={e => this.clickDragItem(item, 'lyric')}
                   >
                     <div className="drag-item-delete">
-                      <div className="drag-item-delete-btn">x</div>
+                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'lyrics')}>x</div>
                     </div>
                     <div>
                       <span>{item.lyrics.content}</span>
@@ -776,7 +920,7 @@ App = React.createClass({
                 );
               })}
               <div className="drag-box-add" title="点击添加音块积木"
-                onClick={this.addDragBox}>
+                onClick={e => this.addDragBox('lyric')}>
                 <span>+</span>
               </div>
             </div>
@@ -788,27 +932,67 @@ App = React.createClass({
                     draggable={true}
                     onDragStart={e => this.dragStart(index, e)}
                     className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
-                    onClick={e => this.clickDragItem(item)}
-                  >
-                    <span>{item.chord}</span>
+                    onClick={e => this.clickDragItem(item, 'chord')}
+                  >  <div className="drag-item-delete">
+                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'chord')}>x</div>
+                    </div>
+                    <div>
+                      <span>{item.chord}</span>
+                    </div>
                   </div>
                 );
               })}
               <div className="drag-box-add drag-box-add-chord" title="点击添加和弦"
-                onClick={this.addDragBox}
+                onClick={e => this.addDragBox('chord')}
               >
                 <span>+</span>
               </div>
             </div>
           </Panel>
         </Col>
-        <Col md="2">
+        <Col md="3">
           {
-            <Panel header="歌词属性" >
-              <Input type="text" label="音高" value={this.state.clickBlockItem.pitch ? this.state.clickBlockItem.pitch.base : ''} />
-              <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''} onChange={e => this.clickBlockItemChange('content', val)} />
-              <Input type="text" label="时长" value={this.state.clickBlockItem.duration} onChange={e => this.clickBlockItemChange('duration', val)} />
-            </Panel>
+            this.state.clickBlockType === 'lyric' ?
+              <Panel header="歌词属性" className='panal-block'>
+                <Input type="text" label="音高" placeholder='可键盘输入，也可以按下钢琴键录入'
+                  value={this.state.pitchBase ? this.state.pitchBase : ''}
+                  onChange={e => this.clickBlockItemChange('pitchBase', e)} />
+                <h6>*可键盘输入、钢琴键录入</h6>
+                <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''}
+                  onChange={e => this.clickBlockItemChange('content', e)} />
+                <p className="label-title">时长</p>
+                <select className="select-div"
+                  value={this.state.clickBlockItem.duration}
+                  onChange={e => this.clickBlockItemChange('duration', e)}
+                >
+                  {durationList.map((item, index) => {
+                    return (
+                      <option key={index} value={item.value}> {item.name}--{item.value}
+                      </option>
+                    )
+                  })}
+                </select>
+                <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>删除积木</Button >
+              </Panel> :
+              <Panel header="和弦属性" className='panal-block'>
+                <Input type="text" label="和弦名" placeholder='可键盘输入，也可以按下钢琴键录入'
+                  value={this.state.clickChordItem.chord ? this.state.clickChordItem.chord : ''}
+                  onChange={e => this.clickChordItemChange('chord', e)}
+                />
+                <h6>*可键盘输入、钢琴键录入</h6>
+                <p className="label-title">时长</p>
+                <select className="select-div"
+                  value={this.state.clickChordItem.duration}
+                  onChange={e => this.clickChordItemChange('duration', e)}
+                >
+                  {durationList.map((item, index) => {
+                    return (
+                      <option key={index} value={item.value}> {item.name}--{item.value}
+                      </option>
+                    )
+                  })}
+                </select>
+              </Panel>
           }
         </Col>
       </Grid>
