@@ -330,13 +330,12 @@ App = React.createClass({
       return null;
     }
   },
-  onChangeTime: function (e) {
-    var rawTime, time;
-    rawTime = e.target.value;
+  onChangeTime: function (val) {
+    var time;
     this.setState({
-      rawTime: rawTime
+      rawTime: val
     });
-    time = this.parseRowTime(rawTime);
+    time = this.parseRowTime(val);
     if (time.upper > 0 && time.lower > 0) {
       this.state.song.time = time;
       return this.setState({
@@ -663,10 +662,15 @@ App = React.createClass({
                   onChange={this.onChangeKey} value={rawKey}
                   bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
                 />
-                <Input type="text" placeholder="Time" label="Time"
-                  onChange={this.onChangeTime} value={rawTime}
-                  bsStyle={(!this.validateTime(rawTime) ? "error" : void 0)}
-                />
+                <span>Time</span>
+                <SplitButton
+                  title="选择time"
+                  onSelect={this.onChangeTime}
+                >
+                  <MenuItem key="3/4" eventKey="3/4">3/4</MenuItem>
+                  <MenuItem key="4/4" eventKey="4/4">4/4</MenuItem>
+                </SplitButton>
+                <span>{rawTime}</span>
                 <Input type="checkbox" label="Align Sections"
                   onChange={this.onChangeAlign} checked={alignSections}
                 />
@@ -738,7 +742,6 @@ App = React.createClass({
           }
           <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
-
         </div>
         <div>
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
@@ -769,7 +772,7 @@ App = React.createClass({
                     </div>
                     <div>
                       <span>{item.lyrics.content}</span>
-                   </div>
+                    </div>
                   </div>
                 );
               })}
@@ -801,12 +804,13 @@ App = React.createClass({
           </Panel>
         </Col>
         <Col md="2">
-          <Panel header="属性" >
-            <Input type="text" label="音高" value={this.state.clickBlockItem.pitch ? this.state.clickBlockItem.pitch.base : ''} />
-            <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''} onChange={e => this.clickBlockItemChange('content', val)} />
-            <Input type="text" label="时长" value={this.state.clickBlockItem.duration} onChange={e => this.clickBlockItemChange('duration', val)} />
-
-          </Panel>
+          {
+            <Panel header="歌词属性" >
+              <Input type="text" label="音高" value={this.state.clickBlockItem.pitch ? this.state.clickBlockItem.pitch.base : ''} />
+              <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''} onChange={e => this.clickBlockItemChange('content', val)} />
+              <Input type="text" label="时长" value={this.state.clickBlockItem.duration} onChange={e => this.clickBlockItemChange('duration', val)} />
+            </Panel>
+          }
         </Col>
       </Grid>
       <Panel header="预览" >
