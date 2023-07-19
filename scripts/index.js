@@ -308,14 +308,11 @@ App = React.createClass({
       clickBlockItem: {},//当前点击积木属性
       clickChordItem: {},//当前点击和弦属性
       noteMusicSetDialog: false,//曲谱设置弹窗
-      chord: [
-        {
-          duration: '',
-          chord: '和弦',
-        }
-      ],//和弦积木集合
+      chord: [ ],//和弦积木集合
       clickBlockType: '',//当前点击色块的类型
-      pitchBase: ''
+      pitchBase: '',//音高转换成字符后的显示值
+      clickBlockIndex: null,//当前点击色块的下标
+      clickChordIndex: null,//当前点击和弦的下标
     };
   },
   playNotes: function (notes) {
@@ -627,13 +624,17 @@ App = React.createClass({
     return picData;
   },
   // 点击积木块
-  clickDragItem: function (item, type) {
+  clickDragItem: function (item, index, type) {
     this.setState({
       clickBlockType: type
     })
+
     if (type === 'lyric') {
       // 将音高转换成音符
-      let pt = JSON.parse(JSON.stringify(item.pitch))
+      let pt = JSON.parse(JSON.stringify(item.pitch));
+      this.setState({
+        clickBlockIndex: index
+      })
       this.setState({
         pitchBase: getNoteName(pt.base)
       });
@@ -646,9 +647,11 @@ App = React.createClass({
       // 歌词   
       this.setState({
         clickChordItem: item
-      })
+      });
+      this.setState({
+        clickChordIndex: index
+      });
     }
-
   },
   // 新增积木块
   addDragBox: function (type) {
@@ -693,11 +696,12 @@ App = React.createClass({
         pitchBase: e.target.value
       });
     } else {
-      this.state.clickBlockItem.duration = e.target.value * 1
+      this.state.clickBlockItem.duration = e.target.value*1
     }
     this.setState({
       clickBlockItem: this.state.clickBlockItem
-    })
+    });
+    debugger
     this.setState({
       song: this.state.song
     })
@@ -900,15 +904,15 @@ App = React.createClass({
             <div className="drag-box">
               {song.melody.map((item, index) => {
                 return (
-
                   <div
                     key={item.id}
                     draggable={true}
                     onDragStart={e => this.dragStart(index, e)}
                     onDragOver={this.allowDrop}
                     onDrop={e => this.drop(index, e)}
-                    className={item.pitch.base % 2 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
-                    onClick={e => this.clickDragItem(item, 'lyric')}
+                    className={item.duration % 3 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
+                    onClick={e => this.clickDragItem(item, index, 'lyric')}
+                    style={{width:(10*item.duration)+'px'}}
                   >
                     <div className="drag-item-delete">
                       <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'lyrics')}>x</div>
@@ -932,7 +936,8 @@ App = React.createClass({
                     draggable={true}
                     onDragStart={e => this.dragStart(index, e)}
                     className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
-                    onClick={e => this.clickDragItem(item, 'chord')}
+                    onClick={e => this.clickDragItem(item, index, 'chord')}
+                    style={{width:(10*item.duration)+'px  !important;'}}
                   >  <div className="drag-item-delete">
                       <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'chord')}>x</div>
                     </div>
@@ -972,7 +977,7 @@ App = React.createClass({
                     )
                   })}
                 </select>
-                <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>删除积木</Button >
+                <Button type="button" className="btn btn-outline-primary" onClick={e => this.deleteBlockItem(this.state.clickBlockIndex, 'lyrics')}>删除积木</Button >
               </Panel> :
               <Panel header="和弦属性" className='panal-block'>
                 <Input type="text" label="和弦名" placeholder='可键盘输入，也可以按下钢琴键录入'
@@ -992,6 +997,7 @@ App = React.createClass({
                     )
                   })}
                 </select>
+                <Button type="button" className="btn btn-outline-primary" onClick={e => this.deleteBlockItem(this.state.clickChordIndex, 'chord')}>删除和弦</Button >
               </Panel>
           }
         </Col>
