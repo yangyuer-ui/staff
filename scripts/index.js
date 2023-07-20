@@ -281,8 +281,40 @@ function getMidiNoteFromName(noteName) {
   return (octave + 1) * 12 + noteIndex;
 }
 
-noteWS = 'ws://localhost:5001/playState';
+//MIDI的ws链接
+noteWS = new WebSocket("ws://localhost:5001/playState");
+//申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
+noteWS.onopen = function () {
+  //当WebSocket创建成功时，触发onopen事件
+  console.log("websocket连接成功");
+  //ws.send("hello"); //将消息发送到服务端
+}
 
+noteWS.onclose = function (e) {
+  //当客户端收到服务端发送的关闭连接请求时，触发onclose事件
+  console.log("websocket已断开");
+}
+noteWS.onerror = function (e) {
+  //如果出现连接、处理、接收、发送数据失败的时候触发onerror事件
+  console.log("websocket发生错误" + error);
+}
+
+//获取和弦
+function getChord(note) {
+  let xhr = new XMLHttpRequest()
+  xhr.open('POST', `'localhost:50060/getChord'`, true)
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.send(note)
+  // xhr.send('60,64,55')
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        let res = JSON.parse(xhr.response);
+
+      }
+    }
+  }
+}
 App = React.createClass({
   displayName: "App",
   mixins: [React.addons.LinkedStateMixin],
@@ -308,7 +340,7 @@ App = React.createClass({
       clickBlockItem: {},//当前点击积木属性
       clickChordItem: {},//当前点击和弦属性
       noteMusicSetDialog: false,//曲谱设置弹窗
-      chord: [ ],//和弦积木集合
+      chord: [],//和弦积木集合
       clickBlockType: '',//当前点击色块的类型
       pitchBase: '',//音高转换成字符后的显示值
       clickBlockIndex: null,//当前点击色块的下标
@@ -496,7 +528,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:16005`)
+    xhr.open('POST', `http://${ baseUrl }:16005`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       text: this.state.songLyrics,
@@ -519,7 +551,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:16006/index`)
+    xhr.open('POST', `http://${ baseUrl }:16006/index`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       lyric: JSON.stringify(this.state.songSetValue.split('\n')),
@@ -543,7 +575,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:18860/singer`)
+    xhr.open('POST', `http://${ baseUrl }:18860/singer`)
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.send(JSON.stringify({
       text: this.state.song.melody,
@@ -559,7 +591,7 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('PMusic', `http://${baseUrl}:${res.fileURL}`)
+          sessionStorage.setItem('PMusic', `http://${ baseUrl }:${ res.fileURL }`)
         }
       }
     }
@@ -568,7 +600,7 @@ App = React.createClass({
   getAccompaniment: function () {
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:18860/getAccompaniment `)
+    xhr.open('POST', `http://${ baseUrl }:18860/getAccompaniment `)
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.send(JSON.stringify(
       {
@@ -579,8 +611,8 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('accompaniment', `http://${baseUrl}:${res.fileURL}`);
-          document.getElementById('au').src = `http://${baseUrl}:${res.fileURL}`
+          sessionStorage.setItem('accompaniment', `http://${ baseUrl }:${ res.fileURL }`);
+          document.getElementById('au').src = `http://${ baseUrl }:${ res.fileURL }`
         }
       }
     }
@@ -696,12 +728,11 @@ App = React.createClass({
         pitchBase: e.target.value
       });
     } else {
-      this.state.clickBlockItem.duration = e.target.value*1
+      this.state.clickBlockItem.duration = e.target.value * 1
     }
     this.setState({
       clickBlockItem: this.state.clickBlockItem
     });
-    debugger
     this.setState({
       song: this.state.song
     })
@@ -745,6 +776,43 @@ App = React.createClass({
     }
   },
 
+  //钢琴键盘输入获取音高
+  wsPitchMsg: function () {
+    // 接受消息
+    noteWS.onmessage = function (e) {
+      let data = e.data.split(',');
+      if (data[0] == 144) {
+        this.state.clickBlockItem.pitch.base = data[1]
+        let pb = getNoteName(data[1]);//将音高转换为字符
+        this.setState({
+          pitchBase: pb
+        });
+        // 歌词 
+        this.setState({
+          clickBlockItem: this.state.clickBlockItem
+        });
+      }
+    }
+  },
+
+  //钢琴键盘输入获取和弦
+  wsChordMsg: function () {
+    // 接受消息
+    noteWS.onmessage = function (e) {
+      let data = e.data.split(',');
+      if (data[0] == 144) {
+        this.state.clickBlockItem.pitch.base = data[1]
+        let pb = getNoteName(data[1]);//将音高转换为字符
+        this.setState({
+          pitchBase: pb
+        });
+        // 歌词 
+        this.setState({
+          clickBlockItem: this.state.clickBlockItem
+        });
+      }
+    }
+  },
   render: function () {
     var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying,
       rawKey, rawTime, ref,
@@ -912,7 +980,7 @@ App = React.createClass({
                     onDrop={e => this.drop(index, e)}
                     className={item.duration % 3 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
                     onClick={e => this.clickDragItem(item, index, 'lyric')}
-                    style={{width:(10*item.duration)+'px'}}
+                    style={{ width: (10 * item.duration) + 'px' }}
                   >
                     <div>
                       <span>{item.lyrics.content}</span>
@@ -934,8 +1002,10 @@ App = React.createClass({
                     onDragStart={e => this.dragStart(index, e)}
                     className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
                     onClick={e => this.clickDragItem(item, index, 'chord')}
-                    style={{width:(10*item.duration)+'px  !important;'}}
-                  >  
+                    style={{ width: (10 * item.duration) + 'px  !important;' }}
+                  >  <div className="drag-item-delete">
+                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'chord')}>x</div>
+                    </div>
                     <div>
                       <span>{item.chord}</span>
                     </div>
@@ -956,7 +1026,9 @@ App = React.createClass({
               <Panel header="歌词属性" className='panal-block'>
                 <Input type="text" label="音高" placeholder='可键盘输入，也可以按下钢琴键录入'
                   value={this.state.pitchBase ? this.state.pitchBase : ''}
-                  onChange={e => this.clickBlockItemChange('pitchBase', e)} />
+                  onChange={e => this.clickBlockItemChange('pitchBase', e)}
+                  onFocus={this.wsPitchMsg}
+                />
                 <h6>*可键盘输入、钢琴键录入</h6>
                 <Input type="text" label="歌词" value={this.state.clickBlockItem.lyrics ? this.state.clickBlockItem.lyrics.content : ''}
                   onChange={e => this.clickBlockItemChange('content', e)} />
@@ -978,6 +1050,7 @@ App = React.createClass({
                 <Input type="text" label="和弦名" placeholder='可键盘输入，也可以按下钢琴键录入'
                   value={this.state.clickChordItem.chord ? this.state.clickChordItem.chord : ''}
                   onChange={e => this.clickChordItemChange('chord', e)}
+                  onFocus={this.wsChordMsg}
                 />
                 <h6>*可键盘输入、钢琴键录入</h6>
                 <p className="label-title">时长</p>
