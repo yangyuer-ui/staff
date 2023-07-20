@@ -914,9 +914,6 @@ App = React.createClass({
                     onClick={e => this.clickDragItem(item, index, 'lyric')}
                     style={{width:(10*item.duration)+'px'}}
                   >
-                    <div className="drag-item-delete">
-                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'lyrics')}>x</div>
-                    </div>
                     <div>
                       <span>{item.lyrics.content}</span>
                     </div>
@@ -938,9 +935,7 @@ App = React.createClass({
                     className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
                     onClick={e => this.clickDragItem(item, index, 'chord')}
                     style={{width:(10*item.duration)+'px  !important;'}}
-                  >  <div className="drag-item-delete">
-                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'chord')}>x</div>
-                    </div>
+                  >  
                     <div>
                       <span>{item.chord}</span>
                     </div>
