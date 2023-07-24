@@ -280,9 +280,14 @@ function getMidiNoteFromName(noteName) {
   const noteIndex = noteNames.indexOf(note);
   return (octave + 1) * 12 + noteIndex;
 }
-
+if (window.WebSocket) {
+  console.log("zhichi ");
+} else {
+  // 浏览器不支持WebSocket
+}
 //MIDI的ws链接
-noteWS = new WebSocket("ws://localhost:5001/playState");
+noteWS = new WebSocket("ws://localhost:5001/playWeb");
+
 //申请一个WebSocket对象，参数是服务端地址，同http协议使用http://开头一样，WebSocket协议的url使用ws://开头，另外安全的WebSocket协议使用wss://开头
 noteWS.onopen = function () {
   //当WebSocket创建成功时，触发onopen事件
@@ -296,7 +301,7 @@ noteWS.onclose = function (e) {
 }
 noteWS.onerror = function (e) {
   //如果出现连接、处理、接收、发送数据失败的时候触发onerror事件
-  console.log("websocket发生错误" + error);
+  console.log("websocket发生错误" + e);
 }
 
 //获取和弦
@@ -779,17 +784,18 @@ App = React.createClass({
   //钢琴键盘输入获取音高
   wsPitchMsg: function () {
     // 接受消息
+    let that=this;
     noteWS.onmessage = function (e) {
       let data = e.data.split(',');
       if (data[0] == 144) {
-        this.state.clickBlockItem.pitch.base = data[1]
+        that.state.clickBlockItem.pitch.base = data[1]
         let pb = getNoteName(data[1]);//将音高转换为字符
-        this.setState({
+        that.setState({
           pitchBase: pb
         });
         // 歌词 
-        this.setState({
-          clickBlockItem: this.state.clickBlockItem
+        that.setState({
+          clickBlockItem: that.state.clickBlockItem
         });
       }
     }
@@ -798,17 +804,18 @@ App = React.createClass({
   //钢琴键盘输入获取和弦
   wsChordMsg: function () {
     // 接受消息
+    let that=this;
     noteWS.onmessage = function (e) {
       let data = e.data.split(',');
       if (data[0] == 144) {
-        this.state.clickBlockItem.pitch.base = data[1]
+        that.state.clickBlockItem.pitch.base = data[1];
         let pb = getNoteName(data[1]);//将音高转换为字符
-        this.setState({
+        that.setState({
           pitchBase: pb
         });
         // 歌词 
-        this.setState({
-          clickBlockItem: this.state.clickBlockItem
+        that.setState({
+          clickBlockItem: that.state.clickBlockItem
         });
       }
     }
