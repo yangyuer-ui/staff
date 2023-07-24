@@ -315,7 +315,7 @@ function getChord(note) {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
         let res = JSON.parse(xhr.response);
-
+        return res;
       }
     }
   }
@@ -533,7 +533,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:16005`)
+    xhr.open('POST', `http://${baseUrl}:16005`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       text: this.state.songLyrics,
@@ -556,7 +556,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:16006/index`)
+    xhr.open('POST', `http://${baseUrl}:16006/index`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       lyric: JSON.stringify(this.state.songSetValue.split('\n')),
@@ -580,7 +580,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:18860/singer`)
+    xhr.open('POST', `http://${baseUrl}:18860/singer`)
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.send(JSON.stringify({
       text: this.state.song.melody,
@@ -596,7 +596,7 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('PMusic', `http://${ baseUrl }:${ res.fileURL }`)
+          sessionStorage.setItem('PMusic', `http://${baseUrl}:${res.fileURL}`)
         }
       }
     }
@@ -605,7 +605,7 @@ App = React.createClass({
   getAccompaniment: function () {
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:18860/getAccompaniment `)
+    xhr.open('POST', `http://${baseUrl}:18860/getAccompaniment `)
     xhr.setRequestHeader('Content-Type', 'application/json')
     xhr.send(JSON.stringify(
       {
@@ -616,8 +616,8 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('accompaniment', `http://${ baseUrl }:${ res.fileURL }`);
-          document.getElementById('au').src = `http://${ baseUrl }:${ res.fileURL }`
+          sessionStorage.setItem('accompaniment', `http://${baseUrl}:${res.fileURL}`);
+          document.getElementById('au').src = `http://${baseUrl}:${res.fileURL}`
         }
       }
     }
@@ -808,20 +808,19 @@ App = React.createClass({
     noteWS.onmessage = function (e) {
       let data = e.data.split(',');
       if (data[0] == 144) {
-        that.state.clickBlockItem.pitch.base = data[1];
-        let pb = getNoteName(data[1]);//将音高转换为字符
+        let noteList = [];
+        noteList.push(data[1]);
+        //获取和弦
+        let res = getChord(noteList.toString());
+        that.state.clickChordItem.chord=res;
         that.setState({
-          pitchBase: pb
-        });
-        // 歌词 
-        that.setState({
-          clickBlockItem: that.state.clickBlockItem
+          clickChordItem: that.state.clickChordItem
         });
       }
     }
   },
   render: function () {
-    var alignSections, bpm, brand, exampleSong, i, instr, instrument, isPlaying,
+    var alignSections, bpm, instrument, isPlaying,
       rawKey, rawTime, ref,
       sectionsPerLine, song, volume, songLyrics, songSetValue;
     ref = this.state,
@@ -989,9 +988,6 @@ App = React.createClass({
                     onClick={e => this.clickDragItem(item, index, 'lyric')}
                     style={{ width: (10 * item.duration) + 'px' }}
                   >
-                    <div className="drag-item-delete">
-                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'lyrics')}>x</div>
-                    </div>
                     <div>
                       <span>{item.lyrics.content}</span>
                     </div>
