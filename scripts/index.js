@@ -522,6 +522,9 @@ App = React.createClass({
       this.setState({
         isAIcrateDialog: false
       });
+      this.setState({
+        songSetValue: ''
+      });
     } else {
       this.setState({
         isDialog: false
@@ -750,9 +753,9 @@ App = React.createClass({
   clickChordItemChange: function (type, e) {
     if (type === 'chord')
       this.state.clickChordItem.chord = e.target.value;
-    else {
-      this.state.clickChordItem.duration = e.target.value;
-    }
+    // else {
+    //   this.state.clickChordItem.duration = e.target.value;
+    // }
     this.setState({
       clickChordItem: this.state.clickChordItem
     })
@@ -1009,9 +1012,7 @@ App = React.createClass({
                     className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
                     onClick={e => this.clickDragItem(item, index, 'chord')}
                     style={{ width: (10 * item.duration) + 'px  !important;' }}
-                  >  <div className="drag-item-delete">
-                      <div className="drag-item-delete-btn" onClick={e => this.deleteBlockItem(index, 'chord')}>x</div>
-                    </div>
+                  >  
                     <div>
                       <span>{item.chord}</span>
                     </div>
@@ -1059,7 +1060,7 @@ App = React.createClass({
                   onFocus={this.wsChordMsg}
                 />
                 <h6>*可键盘输入、钢琴键录入</h6>
-                <p className="label-title">时长</p>
+                {/* <p className="label-title">时长</p>
                 <select className="select-div"
                   value={this.state.clickChordItem.duration}
                   onChange={e => this.clickChordItemChange('duration', e)}
@@ -1070,7 +1071,7 @@ App = React.createClass({
                       </option>
                     )
                   })}
-                </select>
+                </select> */}
                 <Button type="button" className="btn btn-outline-primary" onClick={e => this.deleteBlockItem(this.state.clickChordIndex, 'chord')}>删除和弦</Button >
               </Panel>
           }
