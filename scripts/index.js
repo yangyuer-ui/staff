@@ -280,6 +280,15 @@ function getMidiNoteFromName(noteName) {
   const noteIndex = noteNames.indexOf(note);
   return (octave + 1) * 12 + noteIndex;
 }
+
+
+// 播放 MID 文件
+function playMidiFile(url) {
+  MIDI.Player.loadFile(url, function() {
+    MIDI.Player.start();
+  });
+}
+
 if (window.WebSocket) {
   console.log("zhichi ");
 } else {
@@ -367,6 +376,9 @@ App = React.createClass({
     };
   },
   playNotes: function (notes) {
+    // 使用示例
+    var midiUrl = 'assets/melody.mid';
+    playMidiFile(midiUrl);
     var i, playHelper;
     i = 0;
     playHelper = (function (_this) {
@@ -629,7 +641,7 @@ App = React.createClass({
         "key": "Cmajor",
         "tempo": "64"
       }
-      ))
+    ))
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
