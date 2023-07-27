@@ -2,7 +2,7 @@
 
 var App, exampleSongs, parse, rowyourboat, susanna, durationList, noteWS
 modulo = function (a, b) { return (+a % (b = +b) + b) % b; };
-
+var noteList = [];
 parse = function (m) {
   var base, deli, handleLastline, i, isNum, j, k, l, lastLine, len, len1, len2, line, lines, lyricsDelims, noteDelims, notes, o, ref, ref1, ref2, ref3;
   notes = [];
@@ -307,18 +307,32 @@ noteWS.onerror = function (e) {
 //获取和弦
 function getChord(note) {
   let xhr = new XMLHttpRequest()
-  xhr.open('POST', `'localhost:50060/getChord'`, true)
-  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-  xhr.send(note)
-  // xhr.send('60,64,55')
+  xhr.open('GET', `http://localhost:50060/getChord?data=${note}`, true)
+  xhr.send();
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
         let res = JSON.parse(xhr.response);
+        console.log(res);
         return res;
       }
     }
   }
+  // xhr.open('POST', `http://localhost:50060/getChord`)
+  // xhr.setRequestHeader('Content-Type', 'application/json');
+  // xhr.send(JSON.stringify({ notestr: note }));
+  // console.log('发送：' + note);
+  // // xhr.send('60,64,55')
+  // xhr.onreadystatechange = function () {
+  //   if (xhr.readyState === 4) {
+  //     debugger
+  //     if (xhr.status === 200) {
+  //       let res = JSON.parse(xhr.response);
+  //       console.log(res);
+  //       return res;
+  //     }
+  //   }
+  // }
 }
 App = React.createClass({
   displayName: "App",
@@ -614,7 +628,8 @@ App = React.createClass({
       {
         "key": "Cmajor",
         "tempo": "64"
-      }))
+      }
+      ))
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
@@ -787,7 +802,7 @@ App = React.createClass({
   //钢琴键盘输入获取音高
   wsPitchMsg: function () {
     // 接受消息
-    let that=this;
+    let that = this;
     noteWS.onmessage = function (e) {
       let data = e.data.split(',');
       if (data[0] == 144) {
@@ -807,18 +822,20 @@ App = React.createClass({
   //钢琴键盘输入获取和弦
   wsChordMsg: function () {
     // 接受消息
-    let that=this;
+    let that = this;
     noteWS.onmessage = function (e) {
       let data = e.data.split(',');
       if (data[0] == 144) {
-        let noteList = [];
         noteList.push(data[1]);
         //获取和弦
         let res = getChord(noteList.toString());
-        that.state.clickChordItem.chord=res;
+        that.state.clickChordItem.chord = res;
         that.setState({
           clickChordItem: that.state.clickChordItem
         });
+      }
+      else {
+        noteList = [];
       }
     }
   },
@@ -1012,7 +1029,7 @@ App = React.createClass({
                     className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
                     onClick={e => this.clickDragItem(item, index, 'chord')}
                     style={{ width: (10 * item.duration) + 'px  !important;' }}
-                  >  
+                  >
                     <div>
                       <span>{item.chord}</span>
                     </div>
