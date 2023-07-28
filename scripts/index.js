@@ -373,12 +373,11 @@ App = React.createClass({
       pitchBase: '',//音高转换成字符后的显示值
       clickBlockIndex: null,//当前点击色块的下标
       clickChordIndex: null,//当前点击和弦的下标
+      audition
     };
   },
   playNotes: function (notes) {
-    // 使用示例
-    var midiUrl = 'assets/melody.mid';
-    playMidiFile(midiUrl);
+    if(audition)
     var i, playHelper;
     i = 0;
     playHelper = (function (_this) {
@@ -609,13 +608,13 @@ App = React.createClass({
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://localhost:50060/jsonToMidi`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-    xhr.send(`dataJson=${JSON.stringify(this.state.song.melody)}&BPM=${ this.state.bpm}&beat=${this.state.rawTime}`);
+    xhr.send(`dataJson=${JSON.stringify(this.state.song.melody)}&BPM=${this.state.bpm}&beat=${this.state.rawTime}`);
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           console.log(res);
-          playMidiFile( res.filePath);
+          playMidiFile(res.filePath);
         }
       }
     }
@@ -631,7 +630,7 @@ App = React.createClass({
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           console.log(res);
-          playMidiFile( res.filePath);
+          playMidiFile(res.filePath);
         }
       }
     }
@@ -644,7 +643,6 @@ App = React.createClass({
   },
   // 生成MP3音乐
   generatMusicMP: function () {
-    let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://${baseUrl}:18860/singer`)
@@ -1000,6 +998,10 @@ App = React.createClass({
       </div>
       <div className="md-set form-group row">
         <div>
+          <span className="label-title">试听内容</span>
+          <input type="checkbox" label="旋律"  checked={alignSections}/>旋律
+          <input type="checkbox" label="旋律"  checked={alignSections}/>人声
+          <input type="checkbox" label="旋律"  checked={alignSections}/>伴奏
           {
             isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
               : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
