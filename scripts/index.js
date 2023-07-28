@@ -284,7 +284,7 @@ function getMidiNoteFromName(noteName) {
 
 // 播放 MID 文件
 function playMidiFile(url) {
-  MIDI.Player.loadFile(url, function() {
+  MIDI.Player.loadFile(url, function () {
     MIDI.Player.start();
   });
 }
@@ -604,8 +604,46 @@ App = React.createClass({
       }
     }
   },
-  // 生成音乐
+  // 生成midi人声
   generatMusic: function () {
+    let xhr = new XMLHttpRequest()
+    xhr.open('POST', `http://localhost:50060/jsonToMidi`)
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+    xhr.send(`dataJson=${JSON.stringify(this.state.song.melody)}&BPM=${ this.state.bpm}&beat=${this.state.rawTime}`);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          let res = JSON.parse(xhr.response);
+          console.log(res);
+          playMidiFile( res.filePath);
+        }
+      }
+    }
+  },
+  // 生成MIDI伴奏
+  getAccompaniment: function () {
+    let xhr = new XMLHttpRequest()
+    xhr.open('POST', `http://localhost:50060/autoAccompany`)
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+    xhr.send(`chordStr=C,G,Am,Em,F,C,F,G&BPM=${this.state.bpm}&beat=${this.state.rawTime}&type=2&outFileType=midi`)
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          let res = JSON.parse(xhr.response);
+          console.log(res);
+          playMidiFile( res.filePath);
+        }
+      }
+    }
+  },
+  // ai创作
+  aiCreate: function () {
+    this.setState({
+      isAIcrateDialog: true
+    });
+  },
+  // 生成MP3音乐
+  generatMusicMP: function () {
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
@@ -629,34 +667,6 @@ App = React.createClass({
         }
       }
     }
-  },
-  // 生成伴奏
-  getAccompaniment: function () {
-    let baseUrl = sessionStorage.getItem('ipPath');
-    let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:18860/getAccompaniment `)
-    xhr.setRequestHeader('Content-Type', 'application/json')
-    xhr.send(JSON.stringify(
-      {
-        "key": "Cmajor",
-        "tempo": "64"
-      }
-    ))
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200) {
-          let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('accompaniment', `http://${baseUrl}:${res.fileURL}`);
-          document.getElementById('au').src = `http://${baseUrl}:${res.fileURL}`
-        }
-      }
-    }
-  },
-  // ai创作
-  aiCreate: function () {
-    this.setState({
-      isAIcrateDialog: true
-    });
   },
   /**
  * 点击图片的那一刻
