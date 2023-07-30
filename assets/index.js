@@ -618,13 +618,7 @@ App = React.createClass({
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           console.log(res);
-          if (res.suceess === 'true') {
-            playMidiFile(res.data);
-          }
-          else{
-            alert('第'+res.data+1+'个和弦有误，请修改！');
-            return;
-          }
+          playMidiFile('assets/melody.mid');
         }
       }
     }
@@ -745,7 +739,7 @@ App = React.createClass({
       this.state.chord.push({
         duration: this.state.rawTime === '3/4' ? 24 : 32,
         chord: '',
-        type: 2
+        type: '1'
       });
       this.setState({
         chord: this.state.chord
@@ -1113,8 +1107,8 @@ App = React.createClass({
                   onChange={e => this.clickChordItemChange('type', e)}
                 >
                   {/* 1是柱式和弦，2是分解和弦 */}
-                  <option value={2}> 分解和弦 </option>
                   <option value={1}> 柱式和弦 </option>
+                  <option value={2}> 分解和弦 </option>
                 </select>
                 <Button type="button" className="btn btn-outline-primary" onClick={e => this.deleteBlockItem(this.state.clickChordIndex, 'chord')}>删除和弦</Button >
               </Panel>
