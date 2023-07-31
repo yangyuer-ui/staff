@@ -267,9 +267,9 @@ function getIp() {
 // 获取CPUID
 function getCPUID() {
   let xhr = new XMLHttpRequest()
-  xhr.open('POST', `http://localhost:50060/getlD`);
+  xhr.open('POST', `http://localhost:50060/getID`);
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-  xhr.send('getlD=ID');
+  xhr.send('getID=ID');
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
@@ -427,17 +427,17 @@ App = React.createClass({
 
     // 判断试听
     let arr = this.state.audition.sort((x, y) => x - y);
-    if (arr.toString() === '012') {
+    if (arr.toString() === '0,1,2') {
       playMidiFile(this.state.midiGinger);
       playMidiFile(this.state.midiAccount);
       return playHelper();
-    } else if (arr.toString() === '01') {
+    } else if (arr.toString() === '0,1') {
       playMidiFile(this.state.midiGinger);
       return playHelper();
-    } else if (arr.toString() === '02') {
+    } else if (arr.toString() === '0,2') {
       playMidiFile(this.state.midiAccount);
       return playHelper();
-    } else if (arr.toString() === '12') {
+    } else if (arr.toString() === '1,2') {
       playMidiFile(this.state.midiGinger);
       playMidiFile(this.state.midiAccount);
     } else if (arr.toString() === '0') {
