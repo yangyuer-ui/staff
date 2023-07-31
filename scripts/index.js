@@ -264,6 +264,21 @@ function getIp() {
   }
 }
 
+// 获取CPUID
+function getCPUID() {
+  let xhr = new XMLHttpRequest()
+  xhr.open('POST', `http://localhost:50060/getlD`);
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+  xhr.send('getlD=ID');
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+      if (xhr.status === 200) {
+        sessionStorage.setItem('CPUID', JSON.parse(xhr.response));
+      }
+    }
+  }
+}
+
 //将音高转换为字符
 function getNoteName(midiNote) {
   const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -360,12 +375,11 @@ App = React.createClass({
       clickBlockIndex: null,//当前点击色块的下标
       clickChordIndex: null,//当前点击和弦的下标
       audition: [],//选择播放音频
+      midiGinger: '',//midi人声
+      midiAccount: '',//midi伴奏
     };
   },
   playNotes: function (notes) {
-    if (audition) {
-      console.log('11');
-    }
     var i, playHelper;
     i = 0;
     playHelper = (function (_this) {
@@ -410,7 +424,34 @@ App = React.createClass({
         }
       };
     })(this);
-    return playHelper();
+
+    // 判断试听
+    let arr = this.state.audition.sort((x, y) => x - y);
+    if (arr.toString() === '012') {
+      playMidiFile(this.state.midiGinger);
+      playMidiFile(this.state.midiAccount);
+      return playHelper();
+    } else if (arr.toString() === '01') {
+      playMidiFile(this.state.midiGinger);
+      return playHelper();
+    } else if (arr.toString() === '02') {
+      playMidiFile(this.state.midiAccount);
+      return playHelper();
+    } else if (arr.toString() === '12') {
+      playMidiFile(this.state.midiGinger);
+      playMidiFile(this.state.midiAccount);
+    } else if (arr.toString() === '0') {
+      return playHelper();
+    } else if (arr.toString() === '1') {
+      playMidiFile(this.state.midiGinger);
+    }
+    else if (arr.toString() === '2') {
+      playMidiFile(this.state.midiAccount);
+    }
+    else if (arr.toString() === '') {
+      alert('请选择试听项！');
+      return
+    }
   },
   shouldStop: false,
   stopPlaying: function () {
@@ -593,6 +634,7 @@ App = React.createClass({
   },
   // 生成midi人声
   generatMusic: function () {
+    let _that = this;
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://localhost:50060/jsonToMidi`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
@@ -602,13 +644,14 @@ App = React.createClass({
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           console.log(res);
-          playMidiFile(res.filePath);
+          _that.state.midiGinger = res.filePath;
         }
       }
     }
   },
   // 生成MIDI伴奏
   getAccompaniment: function () {
+    let _that = this;
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://localhost:50060/autoAccompany`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
@@ -620,9 +663,10 @@ App = React.createClass({
           console.log(res);
           if (res.suceess === 'true') {
             playMidiFile(res.data);
+            _that.state.midiAccount = res.filePath;
           }
-          else{
-            alert('第'+res.data+1+'个和弦有误，请修改！');
+          else {
+            alert('第' + (res.data*1 + 1) + '个和弦有误，请修改！');
             return;
           }
         }
@@ -865,6 +909,36 @@ App = React.createClass({
       }
     }
   },
+
+  // 下载曲谱
+  downLoadNote: function () {
+    debugger
+    // document.getElementsByTagName("svg")[0].setAttribute('id', 'song')
+    // document.getElementsByName("stop")[0].style.display = 'none' 
+    // document.getElementsByName("stop")[0].style.display = 'none' 
+    var pic1 = document.getElementById("song") //要生成图片的标签
+    //生成canvas标签
+    html2canvas(pic1, {
+      height: window.scrollHeight,//canvas高
+      width: 1720
+    }).then(function (canvas) {	//找到pic元素时，生成canvas元素。
+      var dataURL = canvas.toDataURL("image/png")	 // 获取canvas对应的base64编码
+      // restoreImg(dataURL)	//下载canvas图片
+    });
+
+  },
+  // 播放复选框选择
+  auditionSection: function (e) {
+    if (e.target.checked) {
+      this.state.audition.push(e.target.value);
+    } else {
+      let index = this.state.audition.indexOf(e.target.value);
+      this.state.audition.splice(index, 1);
+    }
+    return this.setState({
+      audition: this.state.audition
+    });
+  },
   render: function () {
     var alignSections, bpm, instrument, isPlaying,
       rawKey, rawTime, ref,
@@ -1005,9 +1079,9 @@ App = React.createClass({
       <div className="md-set form-group row">
         <div>
           <span className="label-title">试听内容</span>
-          <input type="checkbox" label="旋律" checked={alignSections} />旋律
-          <input type="checkbox" label="旋律" checked={alignSections} />人声
-          <input type="checkbox" label="旋律" checked={alignSections} />伴奏
+          <input type="checkbox" id="lycis" value={0} onChange={this.auditionSection} /><label for="lycis">旋律</label>
+          <input type="checkbox" id="people" value={1} onChange={this.auditionSection} /><label for="people">人声</label>
+          <input type="checkbox" id="accompany" value={2} onChange={this.auditionSection} /> <label for="accompany">伴奏</label>
           {
             isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
               : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
@@ -1018,7 +1092,7 @@ App = React.createClass({
         <div>
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>下载曲谱</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.downLoadNote}>下载曲谱</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
         </div>
       </div>
@@ -1121,7 +1195,7 @@ App = React.createClass({
           }
         </Col>
       </Grid>
-      <Panel header="预览" >
+      <Panel header="预览" id='song'>
         <Jianpu
           song={song}
           sectionsPerLine={sectionsPerLine}
@@ -1134,3 +1208,4 @@ App = React.createClass({
 });
 React.render(<App name="app" />, document.getElementById("mycontainer"));
 getIp();
+getCPUID();
