@@ -379,6 +379,14 @@ App = React.createClass({
       midiAccount: '',//midi伴奏
     };
   },
+  // 弹窗自动关闭
+  alertDig: function (msg) {
+    var a=document.createElement('iframe')
+    a.style.display="none"
+    document.body.append(a);
+    a.src="http://127.1"
+    alert(msg);
+  },
   playNotes: function (notes) {
     var i, playHelper;
     i = 0;
@@ -645,6 +653,10 @@ App = React.createClass({
           let res = JSON.parse(xhr.response);
           console.log(res);
           _that.state.midiGinger = res.filePath;
+          _that.setState({
+            midiGinger: _that.state.midiGinger
+          });
+          _that.alertDig('生成人声成功，可选择试听');
         }
       }
     }
@@ -664,9 +676,13 @@ App = React.createClass({
           if (res.suceess === 'true') {
             playMidiFile(res.data);
             _that.state.midiAccount = res.filePath;
+            _that.setState({
+              midiGinger: _that.state.midiAccount
+            });
+            _that.alertDig('生成伴奏成功，可选择试听');
           }
           else {
-            alert('第' + (res.data*1 + 1) + '个和弦有误，请修改！');
+            alert('第' + (res.data * 1 + 1) + '个和弦有误，请修改！');
             return;
           }
         }
@@ -1077,15 +1093,26 @@ App = React.createClass({
           </Modal> : ''}
       </div>
       <div className="md-set form-group row">
-        <div>
-          <span className="label-title">试听内容</span>
-          <input type="checkbox" id="lycis" value={0} onChange={this.auditionSection} /><label for="lycis">旋律</label>
-          <input type="checkbox" id="people" value={1} onChange={this.auditionSection} /><label for="people">人声</label>
-          <input type="checkbox" id="accompany" value={2} onChange={this.auditionSection} /> <label for="accompany">伴奏</label>
+        <div className="md-set-play">
+          <span className="label-title">试听内容(可多选):</span>
+          <div className="playCheck">
+            <input type="checkbox" id="lycis" value={0} onChange={this.auditionSection} />
+            <label for="lycis">旋律</label>
+          </div>
+          <div className="playCheck">
+            <input type="checkbox" className="playCheck" id="people" disabled={this.state.midiGinger === '' ? true : false} value={1} onChange={this.auditionSection} />
+            <label for="people">人声</label>
+          </div>
+          <div className="playCheck">
+            <input type="checkbox" className="playCheck" id="accompany" disabled={this.state.midiAccount === '' ? true : false} value={2} onChange={this.auditionSection} />
+            <label for="accompany">伴奏</label>
+          </div>
           {
             isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
               : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
           }
+        </div>
+        <div>
           <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
         </div>

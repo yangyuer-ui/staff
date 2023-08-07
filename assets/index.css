@@ -74,6 +74,16 @@
     border-radius: 5px 5px 5px 5px;
 }
 
+.md-set-play {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.playCheck {
+    padding: 5px 5px 0px 5px!important; ;
+}
+
 .mark-set {
     display: flex;
     justify-content: space-between;
@@ -126,7 +136,7 @@
 /* h和弦块 */
 .drag-box-add-chord {
     width: 30px;
-   height: 50px;
+    height: 50px;
     font-size: 20px;
 }
 
@@ -139,7 +149,7 @@
 }
 
 /* 下拉样式 */
-.select-div{
+.select-div {
     height: 30px;
     color: #555;
     background-color: #fff;
@@ -148,20 +158,21 @@
     border-radius: 4px;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
 }
-.label-title{
+
+.label-title {
     font-weight: bold;
 }
 
 /* 模态框边距 */
-.modal-content{
-    padding: 20px !important; 
+.modal-content {
+    padding: 20px !important;
 }
 
 /* 音乐块高度 */
-.panal-block .panel-body{
-    height: 260px !important; 
+.panal-block .panel-body {
+    height: 260px !important;
 }
 
-button{
+button {
     margin-left: 5px;
 }
