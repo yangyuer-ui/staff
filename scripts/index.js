@@ -435,6 +435,7 @@ App = React.createClass({
 
     // 判断试听
     let arr = this.state.audition.sort((x, y) => x - y);
+    debugger
     if (arr.toString() === '0,1,2') {
       playMidiFile(this.state.midiGinger);
       playMidiFile(this.state.midiAccount);
@@ -664,8 +665,9 @@ App = React.createClass({
   // 生成MIDI伴奏
   getAccompaniment: function () {
     let _that = this;
-    let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://localhost:50060/autoAccompany`)
+    let xhr = new XMLHttpRequest();
+    let baseUrl = sessionStorage.getItem('ipPath');
+    xhr.open('POST', `http://${baseUrl}:16007/autoAccompany`);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(`chordJson=${JSON.stringify(this.state.chord)}&BPM=${this.state.bpm}&beat=${this.state.rawTime}&outFileType=midi`)
     xhr.onreadystatechange = function () {
@@ -674,12 +676,11 @@ App = React.createClass({
           let res = JSON.parse(xhr.response);
           console.log(res);
           if (res.suceess === 'true') {
-            playMidiFile(res.data);
-            _that.state.midiAccount = res.filePath;
+            _that.state.midiAccount = `http://${baseUrl}${res.data}`;
             _that.setState({
-              midiGinger: _that.state.midiAccount
+              midiAccount: _that.state.midiAccount
             });
-            _that.alertDig('生成伴奏成功，可选择试听');
+            playMidiFile(_that.state.midiAccount);
           }
           else {
             alert('第' + (res.data * 1 + 1) + '个和弦有误，请修改！');
@@ -928,10 +929,6 @@ App = React.createClass({
 
   // 下载曲谱
   downLoadNote: function () {
-    debugger
-    // document.getElementsByTagName("svg")[0].setAttribute('id', 'song')
-    // document.getElementsByName("stop")[0].style.display = 'none' 
-    // document.getElementsByName("stop")[0].style.display = 'none' 
     var pic1 = document.getElementById("song") //要生成图片的标签
     //生成canvas标签
     html2canvas(pic1, {
@@ -939,7 +936,31 @@ App = React.createClass({
       width: 1720
     }).then(function (canvas) {	//找到pic元素时，生成canvas元素。
       var dataURL = canvas.toDataURL("image/png")	 // 获取canvas对应的base64编码
-      // restoreImg(dataURL)	//下载canvas图片
+      // 将base64传输给接口
+      let baseUrl = sessionStorage.getItem('ipPath');
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', `http://${baseUrl}:16007/qr_code`);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(JSON.stringify({
+        data: dataURL,
+        id: sessionStorage.getItem('CPUID'),
+      }));
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            let res = JSON.parse(xhr.response);
+            new QRCode(document.getElementById("qrcode"), "https://github.com/davidshimjs/qrcodejs");
+            var qrcode = new QRCode(document.getElementById("qrcode"), {
+              text: "生成二维码的方法不止一种",
+              width: 128,
+              height: 128,
+              colorDark: "#f60",
+              colorLight: "#ccc",
+              correctLevel: 0 // 二维码结构复杂性 0~3
+            });
+          }
+        }
+      }
     });
 
   },
@@ -1120,6 +1141,7 @@ App = React.createClass({
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.downLoadNote}>下载曲谱</Button >
+          <div id="qrcode"></div>
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
         </div>
       </div>
