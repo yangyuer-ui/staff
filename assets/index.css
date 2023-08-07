@@ -1,6 +1,50 @@
 #mycontainer {
-    padding: 10px;
+    background: url("./img/labeBac.png") no-repeat left;
+    position: relative;
+    background-size: 100% 100%;
 }
+
+/* 更改bootstrap默认样式 */
+.modal-content {
+    background: url("./img/labeBac.png") no-repeat left;
+    position: relative;
+    background-size: 100% 100%;
+}
+
+.panel-default>.panel-heading {
+    background-image: unset !important;
+    background-color: rgba(39, 47, 56, 1) !important;
+    color: white !important;
+    border-color: rgba(121, 121, 121, 1) !important;
+    font-size: 16px;
+}
+
+.panal-block .panel-body {
+    background-color: rgba(64, 79, 90, 1) !important;
+    color: white;
+}
+.panel-body {
+    background-color: rgba(64, 79, 90, 1) !important;
+    color: white;
+}
+.panel-default>.panel-heading+.panel-collapse>.panel-body {
+    border-top-color: #ddd;
+    background-color: rgba(64, 79, 90, 1) !important;
+    color: white !important;
+}
+
+.btn-outline-primary {
+    background-image: unset !important;
+    background-color: rgba(39, 47, 56, 1) !important;
+    color: white !important;
+    font-size: 18px;
+}
+.btn-group, .btn-group-vertical{
+    display: flex !important;
+}
+
+
+
 
 .markup-input textarea {
     font-family: "Lucida Console", Monaco, monospace;
@@ -8,6 +52,7 @@
 
 .form-group .btn-group {
     margin-left: 20px;
+
 }
 
 .note {
@@ -68,38 +113,68 @@
     padding: 0px 24px;
     margin-bottom: 3px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
     box-shadow: 0px 0px 6px 1px rgba(0, 0, 0, 0.1);
     border-radius: 5px 5px 5px 5px;
+
 }
 
 .md-set-play {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    margin-left: 15px;
 }
 
 .playCheck {
-    padding: 5px 5px 0px 5px!important; ;
+    padding: 5px 5px 0px 15px !important;
+    color: white;
+}
+
+.noteModal,.modal {
+    width: 100%;
+    color: white;
+}
+
+.noteModal .mark-set div {
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+}
+.noteModal .form-group {
+    width: 90px;
+    margin-top: 10px;
 }
 
 .mark-set {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    color: white;
+}
+
+.mark-set .control-label {
+    font-size: 16px;
+    font-weight: bold;
+    margin: -5px 5px 0px 10px;
+    white-space: nowrap;
+}
+
+.mark-set-volume{
+    width: 50%;
 }
 
 .btn-outline-primary {
     padding: 0px 5px;
 }
 
+.drag {
+    overflow-x: auto;
+}
 
 /* 拖拽部分样式 */
 .drag-box {
     display: -webkit-box;
     margin-bottom: 15px;
-    overflow-x: auto;
+
 }
 
 .drag-item {
@@ -107,11 +182,13 @@
     border-radius: 4px;
     border: 1px solid #fffcfc;
     cursor: pointer;
+    font-size: 20px;
+    color: white;
 }
 
 .drag-item-chord {
     height: 50px;
-    background-color: #938b17 !important;
+    background-color: rgba(42, 50, 60, 1) !important;
 }
 
 .drag-item:hover {
@@ -141,11 +218,11 @@
 }
 
 .bac1 {
-    background-color: #b69564;
+    background-color: rgba(116, 145, 160, 1);
 }
 
 .bac2 {
-    background-color: #a8bf9d;
+    background-color: #778b6d;
 }
 
 /* 下拉样式 */
@@ -157,10 +234,6 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-}
-
-.label-title {
-    font-weight: bold;
 }
 
 /* 模态框边距 */

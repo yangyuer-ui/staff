@@ -377,14 +377,15 @@ App = React.createClass({
       audition: [],//选择播放音频
       midiGinger: '',//midi人声
       midiAccount: '',//midi伴奏
+      downQrcodeLink: '',//下载二维码地址
     };
   },
   // 弹窗自动关闭
   alertDig: function (msg) {
-    var a=document.createElement('iframe')
-    a.style.display="none"
+    var a = document.createElement('iframe')
+    a.style.display = "none"
     document.body.append(a);
-    a.src="http://127.1"
+    a.src = "http://127.1"
     alert(msg);
   },
   playNotes: function (notes) {
@@ -435,7 +436,6 @@ App = React.createClass({
 
     // 判断试听
     let arr = this.state.audition.sort((x, y) => x - y);
-    debugger
     if (arr.toString() === '0,1,2') {
       playMidiFile(this.state.midiGinger);
       playMidiFile(this.state.midiAccount);
@@ -588,7 +588,13 @@ App = React.createClass({
       this.setState({
         songSetValue: ''
       });
-    } else {
+    }
+    else if (type === 'downQrcodeLink') {
+      this.setState({
+        downQrcodeLink: ''
+      });
+    }
+    else {
       this.setState({
         isDialog: false
       });
@@ -637,11 +643,12 @@ App = React.createClass({
           that.setState({
             song: exampleSongs[0],
           });
+          that.generatMusic();
         }
       }
     }
   },
-  // 生成midi人声
+  // 生成midi旋律
   generatMusic: function () {
     let _that = this;
     let xhr = new XMLHttpRequest()
@@ -652,7 +659,6 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          console.log(res);
           _that.state.midiGinger = res.filePath;
           _that.setState({
             midiGinger: _that.state.midiGinger
@@ -690,14 +696,9 @@ App = React.createClass({
       }
     }
   },
-  // ai创作
-  aiCreate: function () {
-    this.setState({
-      isAIcrateDialog: true
-    });
-  },
-  // 生成MP3音乐
+  // 生成MP3音乐(人声)
   generatMusicMP: function () {
+    let _that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://${baseUrl}:18860/singer`)
@@ -716,10 +717,19 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          sessionStorage.setItem('PMusic', `http://${baseUrl}:${res.fileURL}`)
+          _that.state.midiGinger = `http://${baseUrl}:${res.fileURL}`;
+          _that.setState({
+            midiGinger: _that.state.midiGinger
+          });
         }
       }
     }
+  },
+  // ai创作
+  aiCreate: function () {
+    this.setState({
+      isAIcrateDialog: true
+    });
   },
   /**
  * 点击图片的那一刻
@@ -929,6 +939,7 @@ App = React.createClass({
 
   // 下载曲谱
   downLoadNote: function () {
+    let _that = this;
     var pic1 = document.getElementById("song") //要生成图片的标签
     //生成canvas标签
     html2canvas(pic1, {
@@ -936,12 +947,17 @@ App = React.createClass({
       width: 1720
     }).then(function (canvas) {	//找到pic元素时，生成canvas元素。
       var dataURL = canvas.toDataURL("image/png")	 // 获取canvas对应的base64编码
+      // let href = dataURL
+      // let a = document.createElement('a') // 创建a标签
+      // a.download = "曲谱" // 设置图片名字
+      // a.href = href
+      // a.dispatchEvent(new MouseEvent('click'))	//模拟点击进行下载 
       // 将base64传输给接口
       let baseUrl = sessionStorage.getItem('ipPath');
       let xhr = new XMLHttpRequest();
       xhr.open('POST', `http://${baseUrl}:16007/qr_code`);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(JSON.stringify({
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.send(window.Qs.stringify({
         data: dataURL,
         id: sessionStorage.getItem('CPUID'),
       }));
@@ -949,15 +965,17 @@ App = React.createClass({
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
             let res = JSON.parse(xhr.response);
-            new QRCode(document.getElementById("qrcode"), "https://github.com/davidshimjs/qrcodejs");
-            var qrcode = new QRCode(document.getElementById("qrcode"), {
-              text: "生成二维码的方法不止一种",
-              width: 128,
-              height: 128,
-              colorDark: "#f60",
-              colorLight: "#ccc",
-              correctLevel: 0 // 二维码结构复杂性 0~3
-            });
+            let obj = {
+              arlink: `http://${baseUrl}${res.seatchRes}`
+            }
+            //this.QRlink 生成的二维码地址url
+            QRCode.toDataURL(obj.arlink, obj, (err, url) => {
+              if (err) throw err
+              //将生成的二维码路径复制给QRImgUrl
+              _that.setState({
+                downQrcodeLink: url
+              });
+            })
           }
         }
       }
@@ -1002,7 +1020,7 @@ App = React.createClass({
           <iframe src="lib/waveform-playlist/web-audio-editor.html" height="500px" width="100%">
           </iframe>
           <div>
-            <Button variant="secondary" onClick={e => this.handleClose('mp3')}>
+            <Button variant="secondary" className="btn-outline-primary" onClick={e => this.handleClose('mp3')}>
               关闭
             </Button>
           </div>
@@ -1011,22 +1029,22 @@ App = React.createClass({
       {/* ai创作 */}
       <div>
         {this.state.isAIcrateDialog ?
-          <Modal>
+          <Modal className="modal">
             <Input type="text" placeholder="歌词主题" label="歌词主题"
               onChange={this.onChangeLyric} value={songLyrics} />
             <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeLyric}>作词</Button >
-            <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeSong}>作曲</Button >
+            <Button type="button" className="btn btn-outline-primary" disabled={songSetValue == '' ? true : false} onClick={this.btnChangeSong}>作曲</Button >
             <Panel header="歌词配置,修改歌词用enter换行隔开" >
               <Input type="textarea" placeholder="歌词" rows='10'
                 onChange={this.onChangeSetSong} value={songSetValue}
                 bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
               />
             </Panel>
-            <p>  <span style={colorRed}>*</span> <span>更新到积木后，当前歌词会从该容器中删除</span></p>
-            <Button variant="secondary" onClick={e => this.handleClose('aiCreate')}>
+            <p> <span style={colorRed}>*</span> <span>更新到积木后，当前歌词会从该容器中删除</span></p>
+            <Button variant="secondary" className="btn-outline-primary" onClick={e => this.handleClose('aiCreate')}>
               关闭
             </Button>
-            <Button variant="primary" onClick={e => this.handleClose('aiCreate')}>
+            <Button variant="primary" className="btn-outline-primary" onClick={e => this.handleClose('aiCreate')}>
               更新到积木
             </Button>
           </Modal> : ''}
@@ -1034,14 +1052,17 @@ App = React.createClass({
       {/* 曲谱设置 */}
       <div>
         {this.state.noteMusicSetDialog ?
-          <Modal>
-            <PanelGroup defaultActiveKey="1" accordion={true} >
-              <Panel header="普通设置" eventKey="1">
-                <Input type="text" placeholder="1=C" label="Key"
+          <Modal className="noteModal">
+            <div className="mark-set">
+              <div>
+                <span className="control-label">调号</span>
+                <Input type="text" placeholder="1=C"
                   onChange={this.onChangeKey} value={rawKey}
                   bsStyle={(this.parseKey(rawKey) == null ? "error" : void 0)}
                 />
-                <span>Time</span>
+              </div>
+              <div>
+                <span className="control-label">节拍</span>
                 <SplitButton
                   title="选择time"
                   onSelect={this.onChangeTime}
@@ -1050,72 +1071,84 @@ App = React.createClass({
                   <MenuItem key="4/4" eventKey="4/4">4/4</MenuItem>
                 </SplitButton>
                 <span>{rawTime}</span>
-                <Input type="checkbox" label="Align Sections"
+              </div>
+              <div>
+                <span className="control-label">小节对齐</span>
+                <Input type="checkbox"
                   onChange={this.onChangeAlign} checked={alignSections}
                 />
-                <Input type="number" label="Sections per line" placeholder="4"
+                <span className="control-label">曲谱每行小节数</span>
+                <Input type="number" placeholder="4"
                   value={sectionsPerLine} onChange={this.onChangeSPL}
                 />
-              </Panel>
-              <Panel header="节拍设置" eventKey="2">
-                <div className="form-group">
-                  <label className="control-label">Volume</label>
-                  <Slider min={0}
-                    max={100}
-                    step={1}
-                    value={volume}
-                    onSlide={this.onChangeVolume}
-                    toolTip={true}
-                    formatter={(function (v) {
-                      return v + "%";
-                    })}
-                  />
-                  <Input type="number" label="BPM" placeholder="120"
-                    value={bpm} onChange={this.onChangeBPM}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="control-label">Instrument</label>
-                  <SplitButton
-                    title="instrument"
-                    onSelect={this.onSelectInstrument}
-                    onClick={this.onClickInstrument}
-                  >
-                    {this.instruments.map((value, index) => {
-                      return (
-                        <MenuItem key={index} eventKey={index}> {value}
-                        </MenuItem>
-                      )
-                    })}
-                  </SplitButton>
-                </div>
-              </Panel>
-              <Panel header="音频设置" eventKey="3">
-                <span>需点击生成人声或伴奏此处才会有音频</span>
-                <div className="form-group">
-                  <audio
-                    id='au'
-                    controls="controls"
-                    autoplay
-                    loop
-                    muted
-                  >
-                    浏览器不支持音频播放。
-                  </audio>
-                </div>
-              </Panel>
-            </PanelGroup>
-            <Button variant="secondary" onClick={e => this.handleClose('noteMusic')}>
+              </div>
+
+            </div>
+            <div className="mark-set">
+              <div>  <span className="control-label">速度</span>
+                <Input type="number" placeholder="120"
+                  value={bpm} onChange={this.onChangeBPM}
+                /></div>
+              <div>
+                <span className="control-label">乐器</span>
+                <SplitButton
+                  title="instrument"
+                  onSelect={this.onSelectInstrument}
+                  onClick={this.onClickInstrument}
+                >
+                  {this.instruments.map((value, index) => {
+                    return (
+                      <MenuItem key={index} eventKey={index}> {value}
+                      </MenuItem>
+                    )
+                  })}
+                </SplitButton></div>
+              <div className="mark-set-volume">
+                <span className="control-label">音量</span>
+                <Slider min={0}
+                  max={100}
+                  step={1}
+                  value={volume}
+                  onSlide={this.onChangeVolume}
+                  toolTip={true}
+                  formatter={(function (v) {
+                    return v + "%";
+                  })}
+                /></div>
+
+            </div>
+            <Button variant="secondary" className="btn-outline-primary" onClick={e => this.handleClose('noteMusic')}>
               关闭
             </Button>
-            <Button variant="primary" onClick={e => this.handleClose('noteMusic')}>
+            <Button variant="primary" className="btn-outline-primary" onClick={e => this.handleClose('noteMusic')}>
               保存
             </Button>
           </Modal> : ''}
       </div>
+      {/* 曲谱下载 */}
+      <div>
+        {
+          this.state.downQrcodeLink != '' ?
+            <Modal>
+              <img src={this.state.downQrcodeLink} height="100" width="100" />
+              <Button variant="secondary" onClick={e => this.handleClose('downQrcodeLink')}>
+                关闭
+              </Button>
+            </Modal> : ''
+        }
+      </div>
       <div className="md-set form-group row">
         <div className="md-set-play">
-          <span className="label-title">试听内容(可多选):</span>
+          <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusicMP}>虚拟歌手</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.downLoadNote}>下载曲谱</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
+          {
+            isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
+              : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
+          }
           <div className="playCheck">
             <input type="checkbox" id="lycis" value={0} onChange={this.auditionSection} />
             <label for="lycis">旋律</label>
@@ -1123,76 +1156,66 @@ App = React.createClass({
           <div className="playCheck">
             <input type="checkbox" className="playCheck" id="people" disabled={this.state.midiGinger === '' ? true : false} value={1} onChange={this.auditionSection} />
             <label for="people">人声</label>
+            <audio controls>
+              <source src={ this.state.midiGinger} type="audio/mpeg" />
+            </audio>
           </div>
           <div className="playCheck">
             <input type="checkbox" className="playCheck" id="accompany" disabled={this.state.midiAccount === '' ? true : false} value={2} onChange={this.auditionSection} />
             <label for="accompany">伴奏</label>
           </div>
-          {
-            isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
-              : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
-          }
-        </div>
-        <div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
-        </div>
-        <div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>虚拟歌手</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.downLoadNote}>下载曲谱</Button >
-          <div id="qrcode"></div>
-          <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
         </div>
       </div>
       <Grid fluid="true">
         <Col md="9">
           <Panel header="音乐积木编辑" className='panal-block'>
-            <div className="drag-box">
-              {song.melody.map((item, index) => {
-                return (
-                  <div
-                    key={item.id}
-                    draggable={true}
-                    onDragStart={e => this.dragStart(index, e)}
-                    onDragOver={this.allowDrop}
-                    onDrop={e => this.drop(index, e)}
-                    className={item.duration % 3 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
-                    onClick={e => this.clickDragItem(item, index, 'lyric')}
-                    style={{ width: (10 * item.duration) + 'px' }}
-                  >
-                    <div>
-                      <span>{item.lyrics.content}</span>
+            <div className="drag">
+              <div className="drag-box">
+                {song.melody.map((item, index) => {
+                  return (
+                    <div
+                      key={item.id}
+                      draggable={true}
+                      onDragStart={e => this.dragStart(index, e)}
+                      onDragOver={this.allowDrop}
+                      onDrop={e => this.drop(index, e)}
+                      className={item.duration % 3 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
+                      onClick={e => this.clickDragItem(item, index, 'lyric')}
+                      style={{ width: (10 * item.duration) + 'px' }}
+                    >
+                      <div>
+                        <span>{item.lyrics.content}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-              <div className="drag-box-add" title="点击添加音块积木"
-                onClick={e => this.addDragBox('lyric')}>
-                <span>+</span>
+                  );
+                })}
+                <div className="drag-box-add" title="点击添加音块积木"
+                  onClick={e => this.addDragBox('lyric')}>
+                  <span>+</span>
+                </div>
               </div>
-            </div>
-            <div className="drag-box">
-              {this.state.chord.map((item, index) => {
-                return (
-                  <div
-                    key={item.id}
-                    draggable={true}
-                    onDragStart={e => this.dragStart(index, e)}
-                    className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
-                    onClick={e => this.clickDragItem(item, index, 'chord')}
-                    style={{ width: (10 * item.duration) + 'px  !important;' }}
-                  >
-                    <div>
-                      <span>{item.chord}</span>
+              <div className="drag-box">
+                {this.state.chord.map((item, index) => {
+                  return (
+                    <div
+                      key={item.id}
+                      draggable={true}
+                      onDragStart={e => this.dragStart(index, e)}
+                      className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
+                      onClick={e => this.clickDragItem(item, index, 'chord')}
+                      style={{ width: (10 * item.duration) + 'px  !important;' }}
+                    >
+                      <div>
+                        <span>{item.chord}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-              <div className="drag-box-add drag-box-add-chord" title="点击添加和弦"
-                onClick={e => this.addDragBox('chord')}
-              >
-                <span>+</span>
+                  );
+                })}
+                <div className="drag-box-add drag-box-add-chord" title="点击添加和弦"
+                  onClick={e => this.addDragBox('chord')}
+                >
+                  <span>+</span>
+                </div>
               </div>
             </div>
           </Panel>
@@ -1244,14 +1267,18 @@ App = React.createClass({
           }
         </Col>
       </Grid>
-      <Panel header="预览" id='song'>
-        <Jianpu
-          song={song}
-          sectionsPerLine={sectionsPerLine}
-          alignSections={alignSections}
-          highlight={isPlaying}
-        />
-      </Panel>
+      <Grid fluid="true">
+        <Col md="12">
+          <Panel header="预览" id='song'>
+            <Jianpu
+              song={song}
+              sectionsPerLine={sectionsPerLine}
+              alignSections={alignSections}
+              highlight={isPlaying}
+            />
+          </Panel>
+        </Col>
+      </Grid>
     </div>
   }
 });
