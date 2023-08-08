@@ -702,7 +702,7 @@ App = React.createClass({
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://${baseUrl}:18860/singer`)
-    xhr.setRequestHeader('Content-Type', 'application/json')
+    xhr.setRequestHeader('Content-Type', 'application/');
     xhr.send(JSON.stringify({
       text: this.state.song.melody,
       info: {
