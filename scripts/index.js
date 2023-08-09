@@ -336,7 +336,7 @@ function getChord(note) {
   let xhr = new XMLHttpRequest();
   xhr.open('POST', `http://localhost:50060/getChord`)
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-  xhr.send(`noteStr=${ note }`);
+  xhr.send(`noteStr=${note}`);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
@@ -379,8 +379,8 @@ App = React.createClass({
       clickChordIndex: null,//当前点击和弦的下标
       audition: [],//选择播放音频
       midiGinger: '',//midi人声
-      midiAccount: '',//midi伴奏
-      midiMelody: '',//midi旋律
+      midiAccount: 'abt.mid',//midi伴奏
+      midiMelody: 'melody.mid',//midi旋律
       downQrcodeLink: '',//下载二维码地址
       midiMelodyPlayer: null,//midi旋律播放器
       midiAccountPlayer: null,//midi伴奏播放器
@@ -396,7 +396,21 @@ App = React.createClass({
     alert(msg);
   },
   playNotes: function (notes) {
+
     let _that = this;
+    debugger
+    MIDIjs.play(_that.state.midiAccount);
+    MIDIjs.play(_that.state.midiMelody);
+    // MIDI.Player.loadFile(_that.state.midiAccount, function () {
+    //   MIDI.Player.start();
+    // });
+    return
+    _that.state.midiMelodyPlayer.loadFile(_that.state.midiMelody);
+    _that.state.midiAccountPlayer = MIDI.Player;
+    _that.state.midiAccountPlayer.loadFile(_that.state.midiAccount);
+    _that.state.midiMelodyPlayer.play(_that.state.midiMelody)
+    _that.state.midiAccountPlayer.play(_that.state.midiAccount)
+  
     // 0，旋律，1，人声，2，伴奏
     // mp3人声
     let videoGinger = document.getElementById("videoGinger");
@@ -438,12 +452,11 @@ App = React.createClass({
           _that.state.midiMelodyPlayer.stop();
           _that.state.midiAccountPlayer.stop();
         } else {
-          MIDIjs.play( _that.state.midiMelody)
-          MIDIjs.play( _that.state.midiAccount)
+          _that.state.midiMelodyPlayer.play(_that.state.midiMelody)
+          _that.state.midiAccountPlayer.play(_that.state.midiAccount)
           // _that.state.midiMelodyPlayer.start();
           // _that.state.midiAccountPlayer.start();
         }
-
         break;
       case '1,2':
         if (_that.shouldStop == false) {
@@ -473,7 +486,7 @@ App = React.createClass({
         if (_that.shouldStop == false) {
           _that.state.midiAccountPlayer.stop();
         } else {
-          MIDIjs.play( _that.state.midiAccount)
+          MIDIjs.play(_that.state.midiAccount)
           // _that.state.midiAccountPlayer.start();
         }
 
@@ -553,7 +566,7 @@ App = React.createClass({
 
         break;
       case '0,2':
-     
+
         _that.state.midiMelodyPlayer.stop();
         _that.state.midiAccountPlayer.stop();
 
@@ -716,7 +729,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:16005`)
+    xhr.open('POST', `http://${baseUrl}:16005`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       text: this.state.songLyrics,
@@ -739,7 +752,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:16006/index`)
+    xhr.open('POST', `http://${baseUrl}:16006/index`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       lyric: JSON.stringify(this.state.songSetValue.split('\n')),
@@ -764,7 +777,7 @@ App = React.createClass({
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://localhost:50060/jsonToMidi`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-    xhr.send(`dataJson=${ JSON.stringify(this.state.song.melody) }&BPM=${ this.state.bpm }&beat=${ this.state.rawTime }`);
+    xhr.send(`dataJson=${JSON.stringify(this.state.song.melody)}&BPM=${this.state.bpm}&beat=${this.state.rawTime}`);
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
@@ -773,7 +786,7 @@ App = React.createClass({
           _that.setState({
             midiMelody: _that.state.midiMelody
           });
-          _that.state.midiMelodyPlayer =new  MIDI.Player();
+          _that.state.midiMelodyPlayer = new MIDI.Player;
           _that.state.midiMelodyPlayer.loadFile(_that.state.midiMelody);
           _that.alertDig('生成旋律成功，可选择试听');
         }
@@ -789,21 +802,21 @@ App = React.createClass({
     }
     let xhr = new XMLHttpRequest();
     let baseUrl = sessionStorage.getItem('ipPath');
-    xhr.open('POST', `http://${ baseUrl }:16007/autoAccompany`);
+    xhr.open('POST', `http://${baseUrl}:16007/autoAccompany`);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-    xhr.send(`chordJson=${ JSON.stringify(this.state.chord) }&BPM=${ this.state.bpm }&beat=${ this.state.rawTime }&outFileType=midi`)
+    xhr.send(`chordJson=${JSON.stringify(this.state.chord)}&BPM=${this.state.bpm}&beat=${this.state.rawTime}&outFileType=midi`)
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           console.log(res);
           if (res.suceess === 'true') {
-            _that.state.midiAccount = `http://${ baseUrl }${ res.data }`;
+            _that.state.midiAccount = `http://${baseUrl}${res.data}`;
             _that.setState({
               midiAccount: _that.state.midiAccount
             });
             // midi伴奏
-            _that.state.midiAccountPlayer = new  MIDI.Player();
+            _that.state.midiAccountPlayer = new MIDI.Player;
             _that.state.midiAccountPlayer.loadFile(_that.state.midiAccount);
             _that.alertDig('生成伴奏成功，可选择试听');
           }
@@ -820,7 +833,7 @@ App = React.createClass({
     let _that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${ baseUrl }:18860/singer`)
+    xhr.open('POST', `http://${baseUrl}:18860/singer`)
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
       text: this.state.song.melody,
@@ -836,7 +849,7 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          _that.state.midiGinger = `http://${ baseUrl }:${ res.fileURL }`;
+          _that.state.midiGinger = `http://${baseUrl}:${res.fileURL}`;
           _that.setState({
             midiGinger: _that.state.midiGinger
           });
@@ -1037,7 +1050,7 @@ App = React.createClass({
         let xhr = new XMLHttpRequest();
         xhr.open('POST', `http://localhost:50060/getChord`)
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-        xhr.send(`noteStr=${ noteList }`);
+        xhr.send(`noteStr=${noteList}`);
         xhr.onreadystatechange = function () {
           if (xhr.readyState === 4) {
             if (xhr.status === 200) {
@@ -1075,7 +1088,7 @@ App = React.createClass({
       // 将base64传输给接口
       let baseUrl = sessionStorage.getItem('ipPath');
       let xhr = new XMLHttpRequest();
-      xhr.open('POST', `http://${ baseUrl }:16007/qr_code`);
+      xhr.open('POST', `http://${baseUrl}:16007/qr_code`);
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       xhr.send(window.Qs.stringify({
         data: dataURL,
@@ -1086,7 +1099,7 @@ App = React.createClass({
           if (xhr.status === 200) {
             let res = JSON.parse(xhr.response);
             let obj = {
-              arlink: `http://${ baseUrl }${ res.seatchRes }`
+              arlink: `http://${baseUrl}${res.seatchRes}`
             }
             //this.QRlink 生成的二维码地址url
             QRCode.toDataURL(obj.arlink, obj, (err, url) => {
@@ -1134,6 +1147,7 @@ App = React.createClass({
       color: 'red'
     }
     return <div>
+
       {/* mp3音频处理 */}
       <div>
         {this.state.isDialog ? <Modal fullscreen={true} show={this.state.isDialog} onHide={e => this.handleClose('mp3')}>
@@ -1149,7 +1163,7 @@ App = React.createClass({
       {/* ai创作 */}
       <div>
         {this.state.isAIcrateDialog ?
-          <Modal className="modal">
+          <Modal className="modal" >
             <Input type="text" placeholder="歌词主题" label="歌词主题"
               onChange={this.onChangeLyric} value={songLyrics} />
             <Button type="button" className="btn btn-outline-primary" onClick={this.btnChangeLyric}>作词</Button >
