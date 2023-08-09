@@ -396,21 +396,7 @@ App = React.createClass({
     alert(msg);
   },
   playNotes: function (notes) {
-
     let _that = this;
-    debugger
-    MIDIjs.play(_that.state.midiAccount);
-    MIDIjs.play(_that.state.midiMelody);
-    // MIDI.Player.loadFile(_that.state.midiAccount, function () {
-    //   MIDI.Player.start();
-    // });
-    return
-    _that.state.midiMelodyPlayer.loadFile(_that.state.midiMelody);
-    _that.state.midiAccountPlayer = MIDI.Player;
-    _that.state.midiAccountPlayer.loadFile(_that.state.midiAccount);
-    _that.state.midiMelodyPlayer.play(_that.state.midiMelody)
-    _that.state.midiAccountPlayer.play(_that.state.midiAccount)
-  
     // 0，旋律，1，人声，2，伴奏
     // mp3人声
     let videoGinger = document.getElementById("videoGinger");
@@ -1275,8 +1261,9 @@ App = React.createClass({
         <div className="md-set-play">
           <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>生成旋律</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>生成伴奏</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>智能生成</Button >
+          {/* <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>生成旋律</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>生成伴奏</Button > */}
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusicMP}>虚拟歌手</Button >
           {/* <Button
             variant="primary"
