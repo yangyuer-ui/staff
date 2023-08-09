@@ -299,8 +299,11 @@ function getMidiNoteFromName(noteName) {
 
 // 播放 MID 文件
 function playMidiFile(url) {
-  MIDI.Player.loadFile(url, function () {
-    MIDI.Player.start();
+
+  // let res= MIDI.Player.loadFile(url, function () {
+  //   // MIDI.Player.start();
+  // });
+  MIDI.Player.loadFile(url, function (e) {
   });
 }
 
@@ -333,7 +336,7 @@ function getChord(note) {
   let xhr = new XMLHttpRequest();
   xhr.open('POST', `http://localhost:50060/getChord`)
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-  xhr.send(`noteStr=${note}`);
+  xhr.send(`noteStr=${ note }`);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
@@ -377,7 +380,11 @@ App = React.createClass({
       audition: [],//选择播放音频
       midiGinger: '',//midi人声
       midiAccount: '',//midi伴奏
+      midiMelody: '',//midi旋律
       downQrcodeLink: '',//下载二维码地址
+      midiMelodyPlayer: null,//midi旋律播放器
+      midiAccountPlayer: null,//midi伴奏播放器
+
     };
   },
   // 弹窗自动关闭
@@ -389,81 +396,185 @@ App = React.createClass({
     alert(msg);
   },
   playNotes: function (notes) {
-    var i, playHelper;
-    i = 0;
-    playHelper = (function (_this) {
-      return function () {
-        var base, bpm, crotchetDuration, diff, duration, instrument, m, n, nOctaves, note, noteStr, number, pitch, ref, song, unitPitch;
-        if (i >= notes.length || _this.shouldStop) {
-          _this.shouldStop = false;
-          return _this.setState({
-            isPlaying: null
-          });
-        } else {
-          note = notes[i];
-          pitch = note.pitch, duration = note.duration;
-          _this.setState({
-            isPlaying: note
-          });
-          ref = _this.state, bpm = ref.bpm, instrument = ref.instrument, song = ref.song;
-          crotchetDuration = 60 / bpm;
-          if (pitch.base > 0) {
-            m = song.key.right.match(/(#|b)?([A-G])/);
-            if (m[1] === "#") {
-              base = 1;
-            } else if (m[1] === "b") {
-              base = -1;
-            } else {
-              base = 0;
-            }
-            number = (m[2].charCodeAt(0) - 60) % 7 + 1;
-            base += numberMap[number];
-            diff = base + pitch.base + pitch.accidental - c4;
-            unitPitch = modulo(diff, 12);
-            n = notesMap[unitPitch];
-            noteStr = String.fromCharCode(65 + (n.number + 1) % 7);
-            if (n.accidental === 1) {
-              noteStr += "#";
-            }
-            nOctaves = Math.floor(diff / 12) + 4;
-            Synth.play(instrument, noteStr, nOctaves, duration / 8 * crotchetDuration);
-          }
-          setTimeout(playHelper, duration / 8 * crotchetDuration * 1000);
-          return i++;
-        }
-      };
-    })(this);
-
-    // 判断试听
+    let _that = this;
+    // 0，旋律，1，人声，2，伴奏
+    // mp3人声
+    let videoGinger = document.getElementById("videoGinger");
+    //     myVideo.pause();
     let arr = this.state.audition.sort((x, y) => x - y);
-    if (arr.toString() === '0,1,2') {
-      playMidiFile(this.state.midiGinger);
-      playMidiFile(this.state.midiAccount);
-      return playHelper();
-    } else if (arr.toString() === '0,1') {
-      playMidiFile(this.state.midiGinger);
-      return playHelper();
-    } else if (arr.toString() === '0,2') {
-      playMidiFile(this.state.midiAccount);
-      return playHelper();
-    } else if (arr.toString() === '1,2') {
-      playMidiFile(this.state.midiGinger);
-      playMidiFile(this.state.midiAccount);
-    } else if (arr.toString() === '0') {
-      return playHelper();
-    } else if (arr.toString() === '1') {
-      playMidiFile(this.state.midiGinger);
-    }
-    else if (arr.toString() === '2') {
-      playMidiFile(this.state.midiAccount);
-    }
-    else if (arr.toString() === '') {
+    if (arr.toString() === '') {
       alert('请选择试听项！');
-      return
+      return;
     }
+    _that.setState({
+      isPlaying: 1
+    });
+    if (_that.shouldStop == false) {
+      _that.shouldStop = !_that.shouldStop
+    }
+    switch (arr.toString()) {
+      case '0,1,2':
+        if (_that.shouldStop == false) {
+          videoGinger.pause();
+          _that.state.midiMelodyPlayer.stop();
+          _that.state.midiAccountPlayer.stop();
+        } else {
+          videoGinger.play();
+          _that.state.midiMelodyPlayer.start();
+          _that.state.midiAccountPlayer.start();
+        }
+        break;
+      case '0,1':
+        if (_that.shouldStop == false) {
+          videoGinger.pause()
+          _that.state.midiMelodyPlayer.stop();
+        } else {
+          videoGinger.play()
+          _that.state.midiMelodyPlayer.start();
+        }
+        break;
+      case '0,2':
+        if (_that.shouldStop == false) {
+          _that.state.midiMelodyPlayer.stop();
+          _that.state.midiAccountPlayer.stop();
+        } else {
+          MIDIjs.play( _that.state.midiMelody)
+          MIDIjs.play( _that.state.midiAccount)
+          // _that.state.midiMelodyPlayer.start();
+          // _that.state.midiAccountPlayer.start();
+        }
+
+        break;
+      case '1,2':
+        if (_that.shouldStop == false) {
+          videoGinger.pause();
+          _that.state.midiAccountPlayer.stop();
+        } else {
+          videoGinger.play();
+          _that.state.midiAccountPlayer.start();
+        }
+
+        break;
+      case '0':
+        if (_that.shouldStop == false) {
+          _that.state.midiMelodyPlayer.stop();
+        } else {
+          _that.state.midiMelodyPlayer.start();
+        }
+        break;
+      case '1':
+        if (_that.shouldStop == false) {
+          videoGinger.pause();
+        } else {
+          videoGinger.play();
+        }
+        break;
+      case '2':
+        if (_that.shouldStop == false) {
+          _that.state.midiAccountPlayer.stop();
+        } else {
+          MIDIjs.play( _that.state.midiAccount)
+          // _that.state.midiAccountPlayer.start();
+        }
+
+        break;
+      default:
+        alert('请选择试听项！');
+        break
+    }
+    // todo:注释原有试听光标
+    // var i, playHelper;
+    // i = 0;
+    // playHelper = (function (_this) {
+    //   return function () {
+    //     var base, bpm, crotchetDuration, diff, duration, instrument, m, n, nOctaves, note, noteStr, number, pitch, ref, song, unitPitch;
+    //     if (i >= notes.length || _this.shouldStop) {
+    //       _this.shouldStop = false;
+    //       return _this.setState({
+    //         isPlaying: null
+    //       });
+    //     } else {
+    //       note = notes[i];
+    //       pitch = note.pitch, duration = note.duration;
+    //       _this.setState({
+    //         isPlaying: note
+    //       });
+    //       ref = _this.state, bpm = ref.bpm, instrument = ref.instrument, song = ref.song;
+    //       crotchetDuration = 60 / bpm;
+    //       if (pitch.base > 0) {
+    //         m = song.key.right.match(/(#|b)?([A-G])/);
+    //         if (m[1] === "#") {
+    //           base = 1;
+    //         } else if (m[1] === "b") {
+    //           base = -1;
+    //         } else {
+    //           base = 0;
+    //         }
+    //         number = (m[2].charCodeAt(0) - 60) % 7 + 1;
+    //         base += numberMap[number];
+    //         diff = base + pitch.base + pitch.accidental - c4;
+    //         unitPitch = modulo(diff, 12);
+    //         n = notesMap[unitPitch];
+    //         noteStr = String.fromCharCode(65 + (n.number + 1) % 7);
+    //         if (n.accidental === 1) {
+    //           noteStr += "#";
+    //         }
+    //         nOctaves = Math.floor(diff / 12) + 4;
+    //         Synth.play(instrument, noteStr, nOctaves, duration / 8 * crotchetDuration);
+    //       }
+    //       setTimeout(playHelper, duration / 8 * crotchetDuration * 1000);
+    //       return i++;
+    //     }
+    //   };
+    // })(this);
+
+
   },
   shouldStop: false,
   stopPlaying: function () {
+    let _that = this;
+    _that.setState({
+      isPlaying: null
+    });
+    // 0，旋律，1，人声，2，伴奏
+    // mp3人声
+    let videoGinger = document.getElementById("videoGinger");
+    //     myVideo.pause();
+    let arr = this.state.audition.sort((x, y) => x - y);
+    switch (arr.toString()) {
+      case '0,1,2':
+        videoGinger.pause();
+        _that.state.midiMelodyPlayer.stop();
+        _that.state.midiAccountPlayer.stop();
+        break;
+      case '0,1':
+        videoGinger.pause()
+        _that.state.midiMelodyPlayer.stop();
+
+        break;
+      case '0,2':
+     
+        _that.state.midiMelodyPlayer.stop();
+        _that.state.midiAccountPlayer.stop();
+
+        break;
+      case '1,2':
+        videoGinger.pause();
+        _that.state.midiAccountPlayer.stop();
+
+        break;
+      case '0':
+        _that.state.midiMelodyPlayer.stop();
+        break;
+      case '1':
+        videoGinger.pause();
+        break;
+      case '2':
+        _that.state.midiAccountPlayer.stop();
+        break;
+      default:
+        break
+    }
     return this.shouldStop = true;
   },
 
@@ -605,7 +716,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:16005`)
+    xhr.open('POST', `http://${ baseUrl }:16005`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       text: this.state.songLyrics,
@@ -628,7 +739,7 @@ App = React.createClass({
     let that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:16006/index`)
+    xhr.open('POST', `http://${ baseUrl }:16006/index`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(window.Qs.stringify({
       lyric: JSON.stringify(this.state.songSetValue.split('\n')),
@@ -643,7 +754,6 @@ App = React.createClass({
           that.setState({
             song: exampleSongs[0],
           });
-          that.generatMusic();
         }
       }
     }
@@ -654,16 +764,18 @@ App = React.createClass({
     let xhr = new XMLHttpRequest()
     xhr.open('POST', `http://localhost:50060/jsonToMidi`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-    xhr.send(`dataJson=${JSON.stringify(this.state.song.melody)}&BPM=${this.state.bpm}&beat=${this.state.rawTime}`);
+    xhr.send(`dataJson=${ JSON.stringify(this.state.song.melody) }&BPM=${ this.state.bpm }&beat=${ this.state.rawTime }`);
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          _that.state.midiGinger = res.filePath;
+          _that.state.midiMelody = res.filePath;
           _that.setState({
-            midiGinger: _that.state.midiGinger
+            midiMelody: _that.state.midiMelody
           });
-          _that.alertDig('生成人声成功，可选择试听');
+          _that.state.midiMelodyPlayer =new  MIDI.Player();
+          _that.state.midiMelodyPlayer.loadFile(_that.state.midiMelody);
+          _that.alertDig('生成旋律成功，可选择试听');
         }
       }
     }
@@ -671,22 +783,29 @@ App = React.createClass({
   // 生成MIDI伴奏
   getAccompaniment: function () {
     let _that = this;
+    if (this.state.chord.length == 0) {
+      this.alertDig('请先设置和弦配置');
+      return;
+    }
     let xhr = new XMLHttpRequest();
     let baseUrl = sessionStorage.getItem('ipPath');
-    xhr.open('POST', `http://${baseUrl}:16007/autoAccompany`);
+    xhr.open('POST', `http://${ baseUrl }:16007/autoAccompany`);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-    xhr.send(`chordJson=${JSON.stringify(this.state.chord)}&BPM=${this.state.bpm}&beat=${this.state.rawTime}&outFileType=midi`)
+    xhr.send(`chordJson=${ JSON.stringify(this.state.chord) }&BPM=${ this.state.bpm }&beat=${ this.state.rawTime }&outFileType=midi`)
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           console.log(res);
           if (res.suceess === 'true') {
-            _that.state.midiAccount = `http://${baseUrl}${res.data}`;
+            _that.state.midiAccount = `http://${ baseUrl }${ res.data }`;
             _that.setState({
               midiAccount: _that.state.midiAccount
             });
-            playMidiFile(_that.state.midiAccount);
+            // midi伴奏
+            _that.state.midiAccountPlayer = new  MIDI.Player();
+            _that.state.midiAccountPlayer.loadFile(_that.state.midiAccount);
+            _that.alertDig('生成伴奏成功，可选择试听');
           }
           else {
             alert('第' + (res.data * 1 + 1) + '个和弦有误，请修改！');
@@ -701,8 +820,8 @@ App = React.createClass({
     let _that = this;
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
-    xhr.open('POST', `http://${baseUrl}:18860/singer`)
-    xhr.setRequestHeader('Content-Type', 'application/');
+    xhr.open('POST', `http://${ baseUrl }:18860/singer`)
+    xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
       text: this.state.song.melody,
       info: {
@@ -717,10 +836,11 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          _that.state.midiGinger = `http://${baseUrl}:${res.fileURL}`;
+          _that.state.midiGinger = `http://${ baseUrl }:${ res.fileURL }`;
           _that.setState({
             midiGinger: _that.state.midiGinger
           });
+          _that.alertDig('生成人声成功，可选择试听');
         }
       }
     }
@@ -917,7 +1037,7 @@ App = React.createClass({
         let xhr = new XMLHttpRequest();
         xhr.open('POST', `http://localhost:50060/getChord`)
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-        xhr.send(`noteStr=${noteList}`);
+        xhr.send(`noteStr=${ noteList }`);
         xhr.onreadystatechange = function () {
           if (xhr.readyState === 4) {
             if (xhr.status === 200) {
@@ -955,7 +1075,7 @@ App = React.createClass({
       // 将base64传输给接口
       let baseUrl = sessionStorage.getItem('ipPath');
       let xhr = new XMLHttpRequest();
-      xhr.open('POST', `http://${baseUrl}:16007/qr_code`);
+      xhr.open('POST', `http://${ baseUrl }:16007/qr_code`);
       xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
       xhr.send(window.Qs.stringify({
         data: dataURL,
@@ -966,7 +1086,7 @@ App = React.createClass({
           if (xhr.status === 200) {
             let res = JSON.parse(xhr.response);
             let obj = {
-              arlink: `http://${baseUrl}${res.seatchRes}`
+              arlink: `http://${ baseUrl }${ res.seatchRes }`
             }
             //this.QRlink 生成的二维码地址url
             QRCode.toDataURL(obj.arlink, obj, (err, url) => {
@@ -1141,8 +1261,15 @@ App = React.createClass({
         <div className="md-set-play">
           <Button type="button" className="btn btn-outline-primary" onClick={this.noteMusicSet}>曲谱设置</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.aiCreate}>AI创作</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>AI伴奏</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusic}>生成旋律</Button >
+          <Button type="button" className="btn btn-outline-primary" onClick={this.getAccompaniment}>生成伴奏</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusicMP}>虚拟歌手</Button >
+          {/* <Button
+            variant="primary"
+            disabled={isLoadingusicMP}
+            onClick={!isLoadingusicMP ? this.generatMusicMP : null}
+          > {isLoadingusicMP ? '生成中…' : '虚拟歌手'}
+          </Button> */}
           <Button type="button" className="btn btn-outline-primary" onClick={this.downLoadNote}>下载曲谱</Button >
           <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
           {
@@ -1150,15 +1277,19 @@ App = React.createClass({
               : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
           }
           <div className="playCheck">
-            <input type="checkbox" id="lycis" value={0} onChange={this.auditionSection} />
+            <input type="checkbox" id="lycis" disabled={this.state.midiMelody === '' ? true : false} value={0} onChange={this.auditionSection} />
             <label for="lycis">旋律</label>
           </div>
           <div className="playCheck">
             <input type="checkbox" className="playCheck" id="people" disabled={this.state.midiGinger === '' ? true : false} value={1} onChange={this.auditionSection} />
             <label for="people">人声</label>
-            <audio controls>
-              <source src={ this.state.midiGinger} type="audio/mpeg" />
-            </audio>
+            <video controls="controls" autoplay=""
+              id="videoGinger"
+              name="media">
+              <source
+                src={this.state.midiGinger}
+                type="audio/mpeg" />
+            </video>
           </div>
           <div className="playCheck">
             <input type="checkbox" className="playCheck" id="accompany" disabled={this.state.midiAccount === '' ? true : false} value={2} onChange={this.auditionSection} />

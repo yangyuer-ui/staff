@@ -3,6 +3,10 @@
     position: relative;
     background-size: 100% 100%;
 }
+#videoGinger{
+    height: 0px;
+    width: 0px;
+}
 
 /* 更改bootstrap默认样式 */
 .modal-content {
