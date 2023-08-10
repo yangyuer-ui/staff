@@ -133,7 +133,11 @@
     padding: 5px 5px 0px 15px !important;
     color: white;
 }
-
+/* 数据请求模态框 */
+.api-post-modal{
+    margin-top: 150px;
+    text-align: center;
+}
 .noteModal,.modal {
     width: 100%;
     color: white;
