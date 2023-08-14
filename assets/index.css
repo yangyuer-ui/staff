@@ -257,3 +257,7 @@
 button {
     margin-left: 5px;
 }
+
+#song .panel-body{
+    min-height: 200px;
+}

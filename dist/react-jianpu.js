@@ -320,6 +320,8 @@ Jianpu = React.createClass({displayName: "Jianpu",
           sections.push(currentSection);
           currentSection = [];
         }
+        // sections.push(currentSection);
+        // currentSection = [];
       }
       slurX = slurY = 0;
       x = y = 0;

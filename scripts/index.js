@@ -171,17 +171,71 @@ parse = function (m) {
   }
 });
 
-rowyourboat = "M1.   1.|  1   2    3.|   3  2   3    4|  5--|\nT              -             -        -\nLRow, row, row your boat, gently down the stream.\nM<1.>5.| 3.     1.| 5   4 3  2|1--|\nT                       -    -\nC                   S   s \nL Ha ha, fooled ya, I'm a submarine.";
+// rowyourboat = "M1.   1.|  1   2    3.|   3  2   3    4|  5--|\nT              -             -        -\nLRow, row, row your boat, gently down the stream.\nM<1.>5.| 3.     1.| 5   4 3  2|1--|\nT                       -    -\nC                   S   s \nL Ha ha, fooled ya, I'm a submarine.";
 
-susanna = "M00001  2|3    5    5.6 5 3  1.   2  3  3  2  1  2     1   2|\nT   -=  = =    =    = # = =  =    #  =  =  =  =  -     =   =\nL    Oh I come from A labama with my banjo on my knee. And I'm\nC       S s                                                S\nM3    5   5.  6 531. 2  3    3    2   2  1|\nT=    =   =   # ===  #  =    =    =   =  \nLgoin' to Louisia na My true love for to see.\nCs              Ss";
+// susanna = "M00001  2|3    5    5.6 5 3  1.   2  3  3  2  1  2     1   2|\nT   -=  = =    =    = # = =  =    #  =  =  =  =  -     =   =\nL    Oh I come from A labama with my banjo on my knee. And I'm\nC       S s                                                S\nM3    5   5.  6 531. 2  3    3    2   2  1|\nT=    =   =   # ===  #  =    =    =   =  \nLgoin' to Louisia na My true love for to see.\nCs              Ss";
 
 exampleSongs = [
   {
-    name: "Row your boat",
+    name: "",
     markup: '',
-    melody: parse(rowyourboat),
+    melody: [
+      {
+        "pitch": {
+          "base": 60,
+          "accidental": 0
+        },
+        "duration": 8,
+        "options": {},
+        "lyrics": {
+          "exists": true,
+          "content": "我",
+          "hyphen": false
+        }
+      },
+      {
+        "pitch": {
+          "base": 64,
+          "accidental": 0
+        },
+        "duration": 8,
+        "options": {},
+        "lyrics": {
+          "exists": true,
+          "content": "的",
+          "hyphen": false
+        }
+      },
+      {
+        "pitch": {
+          "base": 67,
+          "accidental": 0
+        },
+        "duration": 8,
+        "options": {},
+        "lyrics": {
+          "exists": true,
+          "content": "音",
+          "hyphen": false
+        }
+      },
+      {
+        "pitch": {
+          "base": 60,
+          "accidental": 0
+        },
+        "duration": 8,
+        "options": {},
+        "lyrics": {
+          "exists": true,
+          "content": "乐",
+          "hyphen": false
+        }
+      }
+      
+    ],
     time: {
-      upper: 3,
+      upper: 4,
       lower: 4
     },
     key: {
@@ -189,9 +243,9 @@ exampleSongs = [
       right: "C"
     }
   }, {
-    name: "Oh Susanna",
+    name: "",
     markup: '',
-    melody: parse(susanna),
+    melody:[],
     time: {
       upper: 4,
       lower: 4
@@ -297,16 +351,6 @@ function getMidiNoteFromName(noteName) {
 }
 
 
-// 播放 MID 文件
-function playMidiFile(url) {
-
-  // let res= MIDI.Player.loadFile(url, function () {
-  //   // MIDI.Player.start();
-  // });
-  MIDI.Player.loadFile(url, function (e) {
-  });
-}
-
 if (window.WebSocket) {
   console.log("zhichi ");
 } else {
@@ -353,17 +397,16 @@ App = React.createClass({
   getInitialState: function () {
     return {
       alignSections: true,
-      rawTime: "3/4",
+      rawTime: "4/4",
       rawKey: "1=C",
-      sectionsPerLine: 4,
+      sectionsPerLine: 5,
       song: exampleSongs[0],
       isPlaying: null,
       volume: 30,
-      bpm: 120,
+      bpm: 90,
       instrument: "piano",
       songLyrics: '',//歌曲主题
       songSetValue: '',//歌词设置
-      isDialog: false,
       isAIcrateDialog: false,
       //  移动的图片的index
       movedPicIndex: -1,
@@ -372,15 +415,20 @@ App = React.createClass({
       clickBlockItem: {},//当前点击积木属性
       clickChordItem: {},//当前点击和弦属性
       noteMusicSetDialog: false,//曲谱设置弹窗
-      chord: [],//和弦积木集合
+      chord: [{
+        "chord":"C",
+        "duration":32,
+        "type":2
+        }
+        ],//和弦积木集合
       clickBlockType: '',//当前点击色块的类型
       pitchBase: '',//音高转换成字符后的显示值
       clickBlockIndex: null,//当前点击色块的下标
       clickChordIndex: null,//当前点击和弦的下标
       audition: [],//选择播放音频
       midiGinger: '',//midi人声
-      midiAccount: 'abt.mid',//midi伴奏
-      midiMelody: 'melody.mid',//midi旋律
+      midiAccount: '',//midi伴奏
+      midiMelody: '',//midi旋律
       downQrcodeLink: '',//下载二维码地址
       midiMelodyPlayer: null,//midi旋律播放器
       midiAccountPlayer: null,//midi伴奏播放器
@@ -407,131 +455,7 @@ App = React.createClass({
     if (_that.shouldStop == false) {
       _that.shouldStop = !_that.shouldStop
     }
-    _that.state.midiMelodyPlayer.play(_that.state.midiMelody);
-    // 0，旋律，1，人声，2，伴奏
-    // mp3人声
-    // 取消试听勾选
-    // let arr = this.state.audition.sort((x, y) => x - y);
-    // if (arr.toString() === '') {
-    //   alert('请选择试听项！');
-    //   return;
-    // }
-    // let videoGinger = document.getElementById("videoGinger");
-    // switch (arr.toString()) {
-    //   case '0,1,2':
-    //     if (_that.shouldStop == false) {
-    //       videoGinger.pause();
-    //       _that.state.midiMelodyPlayer.stop();
-    //       _that.state.midiAccountPlayer.stop();
-    //     } else {
-    //       videoGinger.play();
-    //       _that.state.midiMelodyPlayer.start();
-    //       _that.state.midiAccountPlayer.start();
-    //     }
-    //     break;
-    //   case '0,1':
-    //     if (_that.shouldStop == false) {
-    //       videoGinger.pause()
-    //       _that.state.midiMelodyPlayer.stop();
-    //     } else {
-    //       videoGinger.play()
-    //       _that.state.midiMelodyPlayer.start();
-    //     }
-    //     break;
-    //   case '0,2':
-    //     if (_that.shouldStop == false) {
-    //       _that.state.midiMelodyPlayer.stop();
-    //       _that.state.midiAccountPlayer.stop();
-    //     } else {
-    //       _that.state.midiMelodyPlayer.play(_that.state.midiMelody)
-    //       _that.state.midiAccountPlayer.play(_that.state.midiAccount)
-    //       // _that.state.midiMelodyPlayer.start();
-    //       // _that.state.midiAccountPlayer.start();
-    //     }
-    //     break;
-    //   case '1,2':
-    //     if (_that.shouldStop == false) {
-    //       videoGinger.pause();
-    //       _that.state.midiAccountPlayer.stop();
-    //     } else {
-    //       videoGinger.play();
-    //       _that.state.midiAccountPlayer.start();
-    //     }
-
-    //     break;
-    //   case '0':
-    //     if (_that.shouldStop == false) {
-    //       _that.state.midiMelodyPlayer.stop();
-    //     } else {
-    //       _that.state.midiMelodyPlayer.start();
-    //     }
-    //     break;
-    //   case '1':
-    //     if (_that.shouldStop == false) {
-    //       videoGinger.pause();
-    //     } else {
-    //       videoGinger.play();
-    //     }
-    //     break;
-    //   case '2':
-    //     if (_that.shouldStop == false) {
-    //       _that.state.midiAccountPlayer.stop();
-    //     } else {
-    //       MIDIjs.play(_that.state.midiAccount)
-    //       // _that.state.midiAccountPlayer.start();
-    //     }
-
-    //     break;
-    //   default:
-    //     alert('请选择试听项！');
-    //     break
-    // }
-    // todo:注释原有试听光标
-    // var i, playHelper;
-    // i = 0;
-    // playHelper = (function (_this) {
-    //   return function () {
-    //     var base, bpm, crotchetDuration, diff, duration, instrument, m, n, nOctaves, note, noteStr, number, pitch, ref, song, unitPitch;
-    //     if (i >= notes.length || _this.shouldStop) {
-    //       _this.shouldStop = false;
-    //       return _this.setState({
-    //         isPlaying: null
-    //       });
-    //     } else {
-    //       note = notes[i];
-    //       pitch = note.pitch, duration = note.duration;
-    //       _this.setState({
-    //         isPlaying: note
-    //       });
-    //       ref = _this.state, bpm = ref.bpm, instrument = ref.instrument, song = ref.song;
-    //       crotchetDuration = 60 / bpm;
-    //       if (pitch.base > 0) {
-    //         m = song.key.right.match(/(#|b)?([A-G])/);
-    //         if (m[1] === "#") {
-    //           base = 1;
-    //         } else if (m[1] === "b") {
-    //           base = -1;
-    //         } else {
-    //           base = 0;
-    //         }
-    //         number = (m[2].charCodeAt(0) - 60) % 7 + 1;
-    //         base += numberMap[number];
-    //         diff = base + pitch.base + pitch.accidental - c4;
-    //         unitPitch = modulo(diff, 12);
-    //         n = notesMap[unitPitch];
-    //         noteStr = String.fromCharCode(65 + (n.number + 1) % 7);
-    //         if (n.accidental === 1) {
-    //           noteStr += "#";
-    //         }
-    //         nOctaves = Math.floor(diff / 12) + 4;
-    //         Synth.play(instrument, noteStr, nOctaves, duration / 8 * crotchetDuration);
-    //       }
-    //       setTimeout(playHelper, duration / 8 * crotchetDuration * 1000);
-    //       return i++;
-    //     }
-    //   };
-    // })(this);
-
+    playMidiFile(_that.state.midiMelody)
   },
   shouldStop: false,
   stopPlaying: function () {
@@ -539,7 +463,6 @@ App = React.createClass({
     _that.setState({
       isPlaying: null
     });
-    _that.state.midiMelodyPlayer.stop(_that.state.midiMelody);
     return this.shouldStop = true;
   },
 
@@ -647,11 +570,6 @@ App = React.createClass({
       songSetValue: e.target.value
     });
   },
-  onChangeDialog: function (e) {
-    this.setState({
-      isDialog: true
-    });
-  },
   handleClose: function (type) {
     if (type === 'noteMusic') {
       this.setState({
@@ -665,14 +583,9 @@ App = React.createClass({
         songSetValue: ''
       });
     }
-    else if (type === 'downQrcodeLink') {
-      this.setState({
-        downQrcodeLink: ''
-      });
-    }
     else {
       this.setState({
-        isDialog: false
+        downQrcodeLink: ''
       });
     }
   },
@@ -680,7 +593,7 @@ App = React.createClass({
   btnChangeLyric: function () {
     let that = this;
     that.setState({
-      isApiPost:true
+      isApiPost: true
     });
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
@@ -697,7 +610,7 @@ App = React.createClass({
           let res = JSON.parse(xhr.response);
           that.setState({
             songSetValue: res.generated_text.join('\n'),
-            isApiPost:false
+            isApiPost: false
           });
         }
       }
@@ -707,7 +620,7 @@ App = React.createClass({
   btnChangeSong: function () {
     let that = this;
     that.setState({
-      isApiPost:true
+      isApiPost: true
     });
     let baseUrl = sessionStorage.getItem('ipPath');
     let xhr = new XMLHttpRequest()
@@ -725,7 +638,7 @@ App = React.createClass({
           exampleSongs = [jsonData];
           that.setState({
             song: exampleSongs[0],
-            isApiPost:false
+            isApiPost: false
           });
         }
       }
@@ -735,7 +648,7 @@ App = React.createClass({
   generatMusic: function () {
     let that = this;
     that.setState({
-      isApiPost:true
+      isApiPost: true
     });
     let xhr = new XMLHttpRequest();
     let baseUrl = sessionStorage.getItem('ipPath');
@@ -746,13 +659,12 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          that.state.midiMelody = res.filePath;
+          that.state.midiMelody = `http://${baseUrl}${res.data}`;
           that.setState({
             midiMelody: that.state.midiMelody,
-            isApiPost:false
+            isApiPost: false
           });
-          that.state.midiMelodyPlayer = new MIDI.Player;
-          that.state.midiMelodyPlayer.loadFile(that.state.midiMelody);
+          sessionStorage.setItem('PMusic', that.state.midiMelody);
           that.alertDig('生成旋律成功，可选择试听');
         }
       }
@@ -838,7 +750,7 @@ App = React.createClass({
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
           _that.state.midiGinger = `http://${baseUrl}:${res.fileURL}`;
-          sessionStorage.setItem('PMusic',_that.state.midiGinger )
+          sessionStorage.setItem('PMusic', _that.state.midiGinger)
           _that.setState({
             midiGinger: _that.state.midiGinger
           });
@@ -921,16 +833,25 @@ App = React.createClass({
       exampleSongs[0].melody.push({
         duration: 8,
         lyrics: {
-          content: '歌词', exists:
-            true, hyphen: true
+          content: '',
+          exists: true,
+          hyphen: false
         },
         options: {},
-        pitch:
-          { base: 60, accidental: 0 }
+        pitch:{
+          base: 0,
+          accidental: 0
+        }
       });
       this.setState({
-        song: this.state.song
-      })
+        song: this.state.song,
+        // clickBlockItem: exampleSongs[0].melody[exampleSongs[0].melody.length - 1],//默认定位最后一个
+        // clickBlockType: 'lyric'
+      });
+      this.clickDragItem(exampleSongs[0].melody[exampleSongs[0].melody.length - 1],
+        exampleSongs[0].melody.length - 1,
+        'lyric'
+        )
     }
     else {
       // 如果time为3/4和弦duration为24；
@@ -941,8 +862,10 @@ App = React.createClass({
         type: 2
       });
       this.setState({
-        chord: this.state.chord
-      })
+        chord: this.state.chord,
+        clickChordItem: this.state.chord[this.state.chord.length - 1],//默认定位最后一个
+        clickBlockType: 'chord'
+      });
     }
   },
   /**
@@ -1063,7 +986,7 @@ App = React.createClass({
   downLoadNote: function () {
     let _that = this;
     _that.setState({
-      isApiPost:true
+      isApiPost: true
     });
     var pic1 = document.getElementById("song") //要生成图片的标签
     //生成canvas标签
@@ -1099,7 +1022,7 @@ App = React.createClass({
               //将生成的二维码路径复制给QRImgUrl
               _that.setState({
                 downQrcodeLink: url,
-                isApiPost:false
+                isApiPost: false
               });
             })
           }
@@ -1119,6 +1042,28 @@ App = React.createClass({
     return this.setState({
       audition: this.state.audition
     });
+  },
+  // 更新到音频
+  onrefreshAudio: function () {
+    let that = this;
+    that.setState({
+      isApiPost: true
+    });
+    let xhr = new XMLHttpRequest();
+    xhr.open('POST', `http://localhost:50060/refreshScore`)
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+    xhr.send(`BPM=${this.state.bpm}&beat=${this.state.rawTime}&outFileType=midi&chordJson=${JSON.stringify(this.state.chord)}&melodyJson=${JSON.stringify(this.state.song.melody)}`);
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          let res = JSON.parse(xhr.response);
+          that.alertDig(res.message);
+          that.setState({
+            isApiPost: false
+          });
+        }
+      }
+    }
   },
   render: function () {
     var alignSections, bpm, instrument, isPlaying,
@@ -1140,19 +1085,6 @@ App = React.createClass({
       color: 'red'
     }
     return <div>
-      {/* mp3音频处理 */}
-      <div>
-        {this.state.isDialog ? <Modal fullscreen={true} show={this.state.isDialog} onHide={e => this.handleClose('mp3')}>
-        <Button type="button" className="btn btn-outline-primary" onClick={this.generatMusicMP}>虚拟歌手</Button >
-          <iframe src="lib/waveform-playlist/web-audio-editor.html" height="500px" width="100%">
-          </iframe>
-          <div>
-            <Button variant="secondary" className="btn-outline-primary" onClick={e => this.handleClose('mp3')}>
-              关闭
-            </Button>
-          </div>
-        </Modal> : ''}
-      </div>
       {/* ai创作 */}
       <div>
         {this.state.isAIcrateDialog ?
@@ -1269,7 +1201,7 @@ App = React.createClass({
         {
           this.state.isApiPost ?
             <Modal className="api-post-modal">
-              <img src="../assets/img/load-b.png"/>
+              <img src="../assets/img/load-b.png" />
               数据请求中...
             </Modal> : ''
         }
@@ -1289,10 +1221,17 @@ App = React.createClass({
           > {isLoadingusicMP ? '生成中…' : '虚拟歌手'}
           </Button> */}
           <Button type="button" className="btn btn-outline-primary" onClick={this.downLoadNote}>下载曲谱</Button >
-          <Button type="button" className="btn btn-outline-primary" onClick={this.onChangeDialog}>音频编辑</Button >
-          {
+          <Button type="button" className="btn btn-outline-primary" onClick={this.onrefreshAudio}>更新到音频</Button >
+          {/* {
             isPlaying ? <Button type="button" className="btn btn-outline-primary" onClick={this.stopPlaying}>暂停</Button >
               : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
+          } */}
+          {
+            this.state.midiMelody != '' ?
+              <midi-player src={this.state.midiMelody} sound-font>
+              </midi-player>
+              :
+              ''
           }
           {/* 取消人声，旋律，伴奏试听 */}
           {/* <div className="playCheck">
@@ -1321,6 +1260,7 @@ App = React.createClass({
           <Panel header="音乐积木编辑" className='panal-block'>
             <div className="drag">
               <div className="drag-box">
+                <strong>歌词</strong>
                 {song.melody.map((item, index) => {
                   return (
                     <div
@@ -1331,7 +1271,7 @@ App = React.createClass({
                       onDrop={e => this.drop(index, e)}
                       className={item.duration % 3 == 1 ? 'drag-item bac1' : 'drag-item bac2'}
                       onClick={e => this.clickDragItem(item, index, 'lyric')}
-                      style={{ width: (10 * item.duration) + 'px' }}
+                      style={{ width: (10 * item.duration) + 'px', border: this.state.clickBlockIndex === index ? '1px solid #ff9d20' : '' }}
                     >
                       <div>
                         <span>{item.lyrics.content}</span>
@@ -1345,6 +1285,7 @@ App = React.createClass({
                 </div>
               </div>
               <div className="drag-box">
+              <strong>积木</strong>
                 {this.state.chord.map((item, index) => {
                   return (
                     <div
@@ -1353,7 +1294,7 @@ App = React.createClass({
                       onDragStart={e => this.dragStart(index, e)}
                       className={item.duration % 2 == 1 ? ' drag-item drag-item-chord bac1' : 'drag-item drag-item-chord bac2'}
                       onClick={e => this.clickDragItem(item, index, 'chord')}
-                      style={{ width: (10 * item.duration) + 'px  !important;' }}
+                      style={{ width: (10 * item.duration) + 'px  !important;', border: this.state.clickChordIndex === index ? '1px solid #ff9d20' : '' }}
                     >
                       <div>
                         <span>{item.chord}</span>
