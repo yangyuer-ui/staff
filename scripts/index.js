@@ -1253,7 +1253,7 @@ App = React.createClass({
           {
            
             this.state.midiMelody != '' ?
-              <midi-player src='abt.mid' sound-font>
+              <midi-player src={this.state.midiMelody} sound-font>
               </midi-player>
               :
               ''
