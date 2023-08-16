@@ -260,4 +260,5 @@ button {
 
 #song .panel-body{
     min-height: 200px;
+    overflow-x: hidden;
 }

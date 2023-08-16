@@ -232,7 +232,7 @@ exampleSongs = [
           "hyphen": false
         }
       }
-      
+
     ],
     time: {
       upper: 4,
@@ -245,7 +245,7 @@ exampleSongs = [
   }, {
     name: "",
     markup: '',
-    melody:[],
+    melody: [],
     time: {
       upper: 4,
       lower: 4
@@ -303,6 +303,14 @@ durationList = [
     value: 1
   },
 ]
+// 弹窗自动关闭
+function alertDig(msg) {
+  var a = document.createElement('iframe')
+  a.style.display = "none"
+  document.body.append(a);
+  a.src = "http://127.1"
+  alert(msg);
+}
 
 // 获取接口真实ip
 function getIp() {
@@ -314,7 +322,10 @@ function getIp() {
       if (xhr.status === 200) {
         sessionStorage.setItem('ipPath', JSON.parse(xhr.response).ip);
       }
-    }
+      else {
+        alertDig('获取ip失败！')
+      }
+    } 
   }
 }
 
@@ -328,6 +339,8 @@ function getCPUID() {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
         sessionStorage.setItem('CPUID', JSON.parse(xhr.response));
+      } else {
+        alertDig('获取CPUID失败！')
       }
     }
   }
@@ -375,22 +388,6 @@ noteWS.onerror = function (e) {
   console.log("websocket发生错误" + e);
 }
 
-//获取和弦
-function getChord(note) {
-  let xhr = new XMLHttpRequest();
-  xhr.open('POST', `http://localhost:50060/getChord`)
-  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
-  xhr.send(`noteStr=${note}`);
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        let res = JSON.parse(xhr.response);
-        console.log(res);
-        return res;
-      }
-    }
-  }
-}
 App = React.createClass({
   displayName: "App",
   mixins: [React.addons.LinkedStateMixin],
@@ -416,11 +413,11 @@ App = React.createClass({
       clickChordItem: {},//当前点击和弦属性
       noteMusicSetDialog: false,//曲谱设置弹窗
       chord: [{
-        "chord":"C",
-        "duration":32,
-        "type":2
-        }
-        ],//和弦积木集合
+        "chord": "C",
+        "duration": 32,
+        "type": 2
+      }
+      ],//和弦积木集合
       clickBlockType: '',//当前点击色块的类型
       pitchBase: '',//音高转换成字符后的显示值
       clickBlockIndex: null,//当前点击色块的下标
@@ -435,18 +432,11 @@ App = React.createClass({
       isApiPost: false,//是否在请求api
     };
   },
-  // 弹窗自动关闭
-  alertDig: function (msg) {
-    var a = document.createElement('iframe')
-    a.style.display = "none"
-    document.body.append(a);
-    a.src = "http://127.1"
-    alert(msg);
-  },
+
   playNotes: function (notes) {
     let _that = this;
     if (_that.state.midiMelody === '') {
-      _that.alertDig('请先点击"智能生成"按钮生成音频！');
+      alertDig('请先点击"智能生成"按钮生成音频！');
       return;
     }
     _that.setState({
@@ -612,6 +602,11 @@ App = React.createClass({
             songSetValue: res.generated_text.join('\n'),
             isApiPost: false
           });
+        }else{
+          that.setState({
+            isApiPost: false
+          });
+          alertDig('作词失败！')
         }
       }
     }
@@ -640,6 +635,11 @@ App = React.createClass({
             song: exampleSongs[0],
             isApiPost: false
           });
+        }else{
+          that.setState({
+            isApiPost: false
+          });
+          alertDig('作曲失败！')
         }
       }
     }
@@ -665,7 +665,7 @@ App = React.createClass({
             isApiPost: false
           });
           sessionStorage.setItem('PMusic', that.state.midiMelody);
-          that.alertDig('生成旋律成功，可选择试听');
+          alertDig('生成旋律成功，可选择试听');
         }
       }
     }
@@ -687,7 +687,7 @@ App = React.createClass({
   //         });
   //         _that.state.midiMelodyPlayer = new MIDI.Player;
   //         _that.state.midiMelodyPlayer.loadFile(_that.state.midiMelody);
-  //         _that.alertDig('生成旋律成功，可选择试听');
+  //         alertDig('生成旋律成功，可选择试听');
   //       }
   //     }
   //   }
@@ -718,7 +718,7 @@ App = React.createClass({
             // midi伴奏
             _that.state.midiAccountPlayer = new MIDI.Player;
             _that.state.midiAccountPlayer.loadFile(_that.state.midiAccount);
-            _that.alertDig('生成伴奏成功，可选择试听');
+            alertDig('生成伴奏成功，可选择试听');
           }
           else {
             alert('第' + (res.data * 1 + 1) + '个和弦有误，请修改！');
@@ -754,7 +754,7 @@ App = React.createClass({
           _that.setState({
             midiGinger: _that.state.midiGinger
           });
-          _that.alertDig('生成人声成功，可选择试听');
+          alertDig('生成人声成功，可选择试听');
         }
       }
     }
@@ -838,20 +838,21 @@ App = React.createClass({
           hyphen: false
         },
         options: {},
-        pitch:{
-          base: 0,
+        pitch: {
+          base: 60,
           accidental: 0
         }
       });
       this.setState({
         song: this.state.song,
-        // clickBlockItem: exampleSongs[0].melody[exampleSongs[0].melody.length - 1],//默认定位最后一个
-        // clickBlockType: 'lyric'
       });
       this.clickDragItem(exampleSongs[0].melody[exampleSongs[0].melody.length - 1],
         exampleSongs[0].melody.length - 1,
         'lyric'
-        )
+      );
+      setTimeout(() => {
+        document.getElementById("rag-box-add-lyric").scrollIntoView();
+      }, 100);
     }
     else {
       // 如果time为3/4和弦duration为24；
@@ -866,7 +867,15 @@ App = React.createClass({
         clickChordItem: this.state.chord[this.state.chord.length - 1],//默认定位最后一个
         clickBlockType: 'chord'
       });
+      this.clickDragItem(this.state.chord[this.state.chord.length - 1],
+        this.state.chord.length - 1,
+        'chord'
+      );
+      setTimeout(() => {
+        document.getElementById("drag-box-add-chord").scrollIntoView();
+      }, 100);
     }
+
   },
   /**
    * 积木块属性变动
@@ -970,8 +979,14 @@ App = React.createClass({
               console.log(res);
               that.state.clickChordItem.chord = res;
               that.setState({
-                clickChordItem: that.state.clickChordItem
+                clickChordItem: that.state.clickChordItem,
+                isApiPost: false
               });
+            } else {
+              that.setState({
+                isApiPost: false
+              });
+              alertDig('获取钢琴和弦失败！')
             }
           }
         }
@@ -992,7 +1007,6 @@ App = React.createClass({
     //生成canvas标签
     html2canvas(pic1, {
       height: window.scrollHeight,//canvas高
-      width: 1720
     }).then(function (canvas) {	//找到pic元素时，生成canvas元素。
       var dataURL = canvas.toDataURL("image/png")	 // 获取canvas对应的base64编码
       // let href = dataURL
@@ -1025,6 +1039,11 @@ App = React.createClass({
                 isApiPost: false
               });
             })
+          } else {
+            _that.setState({
+              isApiPost: false
+            });
+            alertDig('曲谱下载失败！')
           }
         }
       }
@@ -1046,10 +1065,10 @@ App = React.createClass({
   // 更新到音频
   onrefreshAudio: function () {
     let that = this;
+    let xhr = new XMLHttpRequest();
     that.setState({
       isApiPost: true
     });
-    let xhr = new XMLHttpRequest();
     xhr.open('POST', `http://localhost:50060/refreshScore`)
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
     xhr.send(`BPM=${this.state.bpm}&beat=${this.state.rawTime}&outFileType=midi&chordJson=${JSON.stringify(this.state.chord)}&melodyJson=${JSON.stringify(this.state.song.melody)}`);
@@ -1057,7 +1076,12 @@ App = React.createClass({
       if (xhr.readyState === 4) {
         if (xhr.status === 200) {
           let res = JSON.parse(xhr.response);
-          that.alertDig(res.message);
+          alertDig(res.message);
+          that.setState({
+            isApiPost: false
+          });
+        } else {
+          alertDig('更新失败');
           that.setState({
             isApiPost: false
           });
@@ -1227,8 +1251,9 @@ App = React.createClass({
               : <Button type="button" className="btn btn-outline-primary" onClick={this.playNotes.bind(this, song.melody)}>试听</Button >
           } */}
           {
+           
             this.state.midiMelody != '' ?
-              <midi-player src={this.state.midiMelody} sound-font>
+              <midi-player src='abt.mid' sound-font>
               </midi-player>
               :
               ''
@@ -1258,7 +1283,7 @@ App = React.createClass({
       <Grid fluid="true">
         <Col md="9">
           <Panel header="音乐积木编辑" className='panal-block'>
-            <div className="drag">
+            <div className="drag scroll-container">
               <div className="drag-box">
                 <strong>歌词</strong>
                 {song.melody.map((item, index) => {
@@ -1279,13 +1304,13 @@ App = React.createClass({
                     </div>
                   );
                 })}
-                <div className="drag-box-add" title="点击添加音块积木"
+                <div className="drag-box-add" id="rag-box-add-lyric" title="点击添加音块积木"
                   onClick={e => this.addDragBox('lyric')}>
                   <span>+</span>
                 </div>
               </div>
               <div className="drag-box">
-              <strong>积木</strong>
+                <strong>积木</strong>
                 {this.state.chord.map((item, index) => {
                   return (
                     <div
@@ -1302,7 +1327,7 @@ App = React.createClass({
                     </div>
                   );
                 })}
-                <div className="drag-box-add drag-box-add-chord" title="点击添加和弦"
+                <div className="drag-box-add drag-box-add-chord" id="drag-box-add-chord" title="点击添加和弦"
                   onClick={e => this.addDragBox('chord')}
                 >
                   <span>+</span>
